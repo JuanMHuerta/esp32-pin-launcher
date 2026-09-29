@@ -1,0 +1,11 @@
+# ESP-IDF build outputs and downloaded component caches are reproducible from
+# sdkconfig.defaults and dependencies.lock.
+/build/
+/managed_components/
+/firmwares/**/build/
+/firmwares/**/build-*/
+/firmwares/**/managed_components/
+/firmwares/**/artifacts/
+
+# Preserved source-project Git metadata; it must not become nested repositories.
+/firmwares/**/.source-git-metadata/

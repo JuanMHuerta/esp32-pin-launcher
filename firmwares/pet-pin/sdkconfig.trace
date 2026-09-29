@@ -1,0 +1,3 @@
+# Optional diagnostic build; release builds leave heap tracing disabled.
+CONFIG_HEAP_TRACING_STANDALONE=y
+CONFIG_HEAP_TRACING_STACK_DEPTH=8
