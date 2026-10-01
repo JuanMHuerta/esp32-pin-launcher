@@ -1,0 +1,35 @@
+dependencies:
+  espressif/cmake_utilities:
+    component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.1'
+    source:
+      registry_url: https://components.espressif.com
+      type: service
+    version: 0.5.3
+  espressif/esp_lcd_sh8601:
+    component_hash: 18245cd23204eefb67f61b362405f78364fa13b13cdedda5f7546d89701c506b
+    dependencies:
+    - name: espressif/cmake_utilities
+      registry_url: https://components.espressif.com
+      require: private
+      version: 0.*
+    - name: idf
+      require: private
+      version: '>=5.3'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 2.0.1~1
+  idf:
+    source:
+      type: idf
+    version: 5.5.1
+direct_dependencies:
+- espressif/esp_lcd_sh8601
+- idf
+manifest_hash: 3e3207b6b3cd5e634228eea370d402c877082dd6beb1b84b995873cbbab8dc42
+target: esp32s3
+version: 2.0.0

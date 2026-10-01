@@ -6,6 +6,9 @@
 /firmwares/**/build-*/
 /firmwares/**/managed_components/
 /firmwares/**/artifacts/
+/firmwares/**/sdkconfig
+**/__pycache__/
+*.pyc
 
 # Preserved source-project Git metadata; it must not become nested repositories.
 /firmwares/**/.source-git-metadata/

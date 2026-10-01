@@ -32,7 +32,7 @@ enum {
     LCD_D3 = 5,
     LCD_RST = 17,
     BOOT_BUTTON = 0,
-    APP_COUNT = 4,
+    APP_COUNT = 7,
 };
 
 static const char *TAG = "pin_launcher";
@@ -50,6 +50,9 @@ static const app_entry_t apps[APP_COUNT] = {
     {"FLUID",  "MOTION WATER", ESP_PARTITION_SUBTYPE_APP_OTA_1, 0x04ff},
     {"MISO",   "WOODLAND PET", ESP_PARTITION_SUBTYPE_APP_OTA_2, 0xffe0},
     {"LUMEN",  "Starfield", ESP_PARTITION_SUBTYPE_APP_OTA_3, 0xf81f},
+    {"MECH",   "BAY HANGAR", ESP_PARTITION_SUBTYPE_APP_OTA_4, 0xfbe0},
+    {"DUNGEON", "SEED CRAWLER", ESP_PARTITION_SUBTYPE_APP_OTA_5, 0x07f0},
+    {"3D MAZE", "CLASSIC WALK", ESP_PARTITION_SUBTYPE_APP_OTA_6, 0xfd20},
 };
 
 // Same Waveshare landscape RGB565/QSPI sequence used by the copied apps.
@@ -126,7 +129,16 @@ static const uint8_t *glyph(char c)
         {17, 17, 17, 21, 21, 21, 10}, {17, 17, 10, 4, 10, 17, 17},
         {17, 17, 10, 4, 4, 4, 4}, {31, 1, 2, 4, 8, 16, 31},
     };
-    return c >= 'A' && c <= 'Z' ? letters[c - 'A'] : space;
+    static const uint8_t digits[][7] = {
+        {14,17,19,21,25,17,14}, {4,12,4,4,4,4,14},
+        {14,17,1,2,4,8,31}, {30,1,1,14,1,1,30},
+        {2,6,10,18,31,2,2}, {31,16,16,30,1,1,30},
+        {14,16,16,30,17,17,14}, {31,1,2,4,8,8,8},
+        {14,17,17,14,17,17,14}, {14,17,17,15,1,1,14},
+    };
+    if (c >= 'A' && c <= 'Z') return letters[c - 'A'];
+    if (c >= '0' && c <= '9') return digits[c - '0'];
+    return space;
 }
 
 static void text(uint16_t *pixels, int y0, int x, int y, const char *s, uint16_t color, int scale)
@@ -150,13 +162,13 @@ static void draw_menu(esp_lcd_panel_handle_t panel, uint16_t *strip, unsigned se
     for (int y0 = 0; y0 < LCD_HEIGHT; y0 += STRIP_ROWS) {
         for (int y = 0; y < STRIP_ROWS; ++y) for (int x = 0; x < LCD_WIDTH; ++x)
             strip[y * LCD_WIDTH + x] = ((x / 16 + (y + y0) / 16) & 1) ? 0x0841 : 0x0000;
-        text(strip, y0, 28, 16, "PIN LIBRARY", 0xffff, 3);
-        text(strip, y0, 30, 47, "SHORT PRESS SELECT", 0x8410, 1);
-        text(strip, y0, 30, 61, "HOLD BOOT TO START", 0x8410, 1);
+        text(strip, y0, 28, 9, "PIN LIBRARY", 0xffff, 2);
+        text(strip, y0, 30, 32, "SHORT PRESS SELECT", 0x8410, 1);
+        text(strip, y0, 30, 43, "HOLD BOOT TO START", 0x8410, 1);
         for (unsigned i = 0; i < APP_COUNT; ++i) {
-            const int row = 88 + (int)i * 32;
+            const int row = 57 + (int)i * 25;
             const uint16_t ink = i == selected ? apps[i].color : 0x7bef;
-            if (i == selected) for (int yy = row - 4; yy < row + 24; ++yy)
+            if (i == selected) for (int yy = row - 3; yy < row + 20; ++yy)
                 if (yy >= y0 && yy < y0 + STRIP_ROWS) for (int xx = 18; xx < 518; ++xx)
                     strip[(yy - y0) * LCD_WIDTH + xx] = 0x2104;
             text(strip, y0, 34, row, apps[i].name, ink, 2);
@@ -204,10 +216,10 @@ void app_main(void)
     unsigned selected = 0;
     int64_t down_at = 0;
     bool was_down = false;
-    ESP_LOGI(TAG, "READY: press 1-4 over USB or short-press BOOT to select; hold BOOT to start");
+    ESP_LOGI(TAG, "READY: press 1-7 over USB or short-press BOOT to select; hold BOOT to start");
     while (true) {
         uint8_t byte;
-        if (usb_serial_jtag_read_bytes(&byte, 1, 0) == 1 && byte >= '1' && byte <= '4') {
+        if (usb_serial_jtag_read_bytes(&byte, 1, 0) == 1 && byte >= '1' && byte <= '7') {
             selected = byte - '1';
             draw_menu(panel, strip, selected);
             launch(selected, false);
