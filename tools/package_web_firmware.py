@@ -30,7 +30,16 @@ APP_DETAILS = (
 def source_files(root):
     if (root / ".git").exists():
         result = subprocess.run(
-            ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+            [
+                "git",
+                "-c",
+                f"safe.directory={root}",
+                "ls-files",
+                "-z",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+            ],
             cwd=root,
             capture_output=True,
             check=True,

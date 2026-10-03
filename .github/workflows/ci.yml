@@ -42,6 +42,7 @@ jobs:
         shell: bash
         run: |
           source /opt/esp/idf/export.sh
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           ./build-and-flash.sh --build-only
           python3 tools/package_web_firmware.py
       - uses: actions/setup-node@v4

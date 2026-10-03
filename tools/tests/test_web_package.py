@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 import hashlib
 import json
+import os
 from pathlib import Path
 import struct
 import shutil
@@ -9,6 +10,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import app_layout
@@ -99,6 +101,22 @@ class PackageTests(unittest.TestCase):
         (self.root / "README.md").write_text("Changed fixture source\n")
         changed = package_web_firmware.package(self.root, self.output)
         self.assertNotEqual(source["sha256"], changed["source"]["sha256"])
+
+    def test_container_checkout_with_different_owner_can_be_packaged(self):
+        environment = {
+            "GIT_TEST_ASSUME_DIFFERENT_OWNER": "1",
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+        }
+        with patch.dict(os.environ, environment):
+            untrusted = subprocess.run(
+                ["git", "ls-files"], cwd=self.root, capture_output=True, text=True
+            )
+            self.assertNotEqual(untrusted.returncode, 0)
+            self.assertIn("dubious ownership", untrusted.stderr)
+            manifest = package_web_firmware.package(self.root, self.output)
+        with tarfile.open(self.output / manifest["source"]["file"]) as archive:
+            self.assertIn("multi-pin-launcher/README.md", archive.getnames())
 
     def test_wrong_chip_and_stale_layout_do_not_publish_a_manifest(self):
         path = self.root / app_layout.IMAGES[2][2]

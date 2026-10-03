@@ -62,6 +62,9 @@ Instalá la cadena de herramientas ESP32-S3 siguiendo la
 Los scripts necesitan Bash 5+, Python 3 y las herramientas de ESP-IDF.
 Cloná el proyecto y activá ESP-IDF:
 
+Si descargaste un archivo de fuentes, usá su directorio extraído y omití los
+primeros dos comandos.
+
 ```sh
 git clone https://github.com/JuanMHuerta/esp32-pin-launcher.git
 cd esp32-pin-launcher
