@@ -1,4 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Check a completed on-device exercise/soak, without inferring physical tests."""
+
 import argparse
 import hashlib
 import json
@@ -13,18 +15,41 @@ def main():
     text = args.log.read_text()
     perf = []
     for line in text.splitlines():
-        m = re.search(r"PERF fps=([\d.]+) avg_us=(\d+) max_us=(\d+) late=(\d+) "
-                      r"period_us=(\d+)\.\.(\d+) heap=(\d+) state=(\w+)", line)
+        m = re.search(
+            r"PERF fps=([\d.]+) avg_us=(\d+) max_us=(\d+) late=(\d+) "
+            r"period_us=(\d+)\.\.(\d+) heap=(\d+) state=(\w+)",
+            line,
+        )
         if m:
-            perf.append(dict(zip(["fps", "avg_us", "max_us", "late", "period_min_us",
-                                  "period_max_us", "heap", "state"],
-                                 [float(m[1])] + [int(m[i]) for i in range(2, 8)] + [m[8]])))
-    assert len(perf) >= 36, f"need at least six minutes of frame statistics; found {len(perf)} windows"
+            perf.append(
+                dict(
+                    zip(
+                        [
+                            "fps",
+                            "avg_us",
+                            "max_us",
+                            "late",
+                            "period_min_us",
+                            "period_max_us",
+                            "heap",
+                            "state",
+                        ],
+                        [float(m[1])] + [int(m[i]) for i in range(2, 8)] + [m[8]],
+                    )
+                )
+            )
+    assert len(perf) >= 36, (
+        f"need at least six minutes of frame statistics; found {len(perf)} windows"
+    )
     assert all(29.8 <= x["fps"] <= 30.2 for x in perf), "FPS outside budget"
     assert all(x["max_us"] < 33333 and x["late"] == 0 for x in perf), "frame deadline miss"
-    assert all(30000 <= x["period_min_us"] <= x["period_max_us"] <= 36000 for x in perf), "frame cadence jitter"
+    assert all(30000 <= x["period_min_us"] <= x["period_max_us"] <= 36000 for x in perf), (
+        "frame cadence jitter"
+    )
     assert len({x["heap"] for x in perf}) == 1, "heap changed during steady rendering"
-    assert not re.search(r"^E \(|Guru Meditation|assert failed|CORRUPT|watchdog", text, re.M), "firmware error"
+    assert not re.search(r"^E \(|Guru Meditation|assert failed|CORRUPT|watchdog", text, re.M), (
+        "firmware error"
+    )
     assert text.count("Miso 1.0.0 reset=") == 1, "unexpected reset or missing boot evidence"
     states = ["idle", "walk", "sniff", "eat", "sleep", "love", "play", "surprise", "wave"]
     for state in states:
@@ -36,7 +61,7 @@ def main():
     bars = text.split("COMMAND bars ->", 1)[1].split("END_FRAME", 1)[0]
     rows = re.findall(r"^[0-9a-f]{536}$", bars, re.M)
     assert len(rows) == 60, "incomplete diagnostic color bars"
-    colors = [0xf800, 0x07e0, 0x001f, 0xffff, 0]
+    colors = [0xF800, 0x07E0, 0x001F, 0xFFFF, 0]
     expected = "".join(f"{colors[x * 5 // 134]:04x}" for x in range(134))
     assert all(row == expected for row in rows), "color or framebuffer order incorrect"
     statuses = [line for line in text.splitlines() if "STATUS " in line]
@@ -51,13 +76,19 @@ def main():
     elf_hash = hashlib.sha256(elf.read_bytes()).hexdigest()
     assert elf_hash.startswith(prefix), "running firmware differs from the current build"
     report = {
-        "result": "PASS", "windows": len(perf), "fps_min": min(x["fps"] for x in perf),
-        "fps_max": max(x["fps"] for x in perf), "max_work_us": max(x["max_us"] for x in perf),
+        "result": "PASS",
+        "windows": len(perf),
+        "fps_min": min(x["fps"] for x in perf),
+        "fps_max": max(x["fps"] for x in perf),
+        "max_work_us": max(x["max_us"] for x in perf),
         "max_period_us": max(x["period_max_us"] for x in perf),
         "min_period_us": min(x["period_min_us"] for x in perf),
-        "late_frames": sum(x["late"] for x in perf), "steady_heap_bytes": perf[-1]["heap"],
-        "elf_sha256": elf_hash, "log": str(args.log), "final_status": final,
-        "scope": "USB hardware exercise and soak; physical observations recorded separately in TESTING.md",
+        "late_frames": sum(x["late"] for x in perf),
+        "steady_heap_bytes": perf[-1]["heap"],
+        "elf_sha256": elf_hash,
+        "log": str(args.log),
+        "final_status": final,
+        "scope": "USB hardware exercise and soak; historical physical observations in documentation/APP_VALIDATION.md",
     }
     output = args.log.with_suffix(".json")
     output.write_text(json.dumps(report, indent=2) + "\n")

@@ -1,4 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Check fill area and gravity response in the host water preview."""
+
 from pathlib import Path
 
 
@@ -57,8 +59,9 @@ assert abs(recovered[1] - upright[1]) < 20, (upright, recovered)
 assert left[0] < upright[0] - 100, (upright, left)
 assert abs(flat[0] - upright[0]) < 25, (upright, flat)
 assert abs(flat[1] - upright[1]) < 25, (upright, flat)
-counts = [sample[2] for sample in (upright, early, one_second,
-                                  right, inverted, recovered, left, flat)]
+counts = [
+    sample[2] for sample in (upright, early, one_second, right, inverted, recovered, left, flat)
+]
 assert min(counts) > 5000, counts
 assert max(counts) < min(counts) * 1.02, counts
 print("Pixel liquid responds, reaches every wall, and settles when flat: PASS")

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include "board.h"
 #include "paint.h"
 #include <string.h>
@@ -41,10 +42,11 @@ static const sh8601_lcd_init_cmd_t panel_init[] = {
     {0x29, NULL, 0, 10},
     {0x51, (uint8_t[]){0x98}, 1, 0},
 };
-static bool transfer_done(esp_lcd_panel_io_handle_t io,
-                          esp_lcd_panel_io_event_data_t *data, void *context)
+static bool transfer_done(esp_lcd_panel_io_handle_t io, esp_lcd_panel_io_event_data_t *data,
+                          void *context)
 {
-    (void)io; (void)data;
+    (void)io;
+    (void)data;
     BaseType_t wake = pdFALSE;
     xSemaphoreGiveFromISR((SemaphoreHandle_t)context, &wake);
     return wake == pdTRUE;
@@ -60,12 +62,15 @@ static void display_open(void)
     io.trans_queue_depth = 1;
     ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)SPI2_HOST, &io, &panel_io));
     sh8601_vendor_config_t vendor = {
-        .init_cmds = panel_init, .init_cmds_size = sizeof(panel_init) / sizeof(panel_init[0]),
+        .init_cmds = panel_init,
+        .init_cmds_size = sizeof(panel_init) / sizeof(panel_init[0]),
         .flags.use_qspi_interface = 1,
     };
     const esp_lcd_panel_dev_config_t config = {
-        .reset_gpio_num = 17, .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
-        .bits_per_pixel = 16, .vendor_config = &vendor,
+        .reset_gpio_num = 17,
+        .rgb_ele_order = LCD_RGB_ELEMENT_ORDER_RGB,
+        .bits_per_pixel = 16,
+        .vendor_config = &vendor,
     };
     ESP_ERROR_CHECK(esp_lcd_new_panel_sh8601(panel_io, &config, &panel));
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel));
@@ -73,7 +78,7 @@ static void display_open(void)
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel, true));
     for (int i = 0; i < 2; ++i) {
         strips[i] = heap_caps_malloc(DISPLAY_W * STRIP_ROWS * sizeof(uint16_t),
-                                    MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
+                                     MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
         ESP_ERROR_CHECK(strips[i] ? ESP_OK : ESP_ERR_NO_MEM);
     }
     ESP_LOGI(TAG, "display=536x240 QSPI=40MHz DMA=2x42880 bytes");
@@ -94,11 +99,15 @@ void board_present(const uint16_t pixels[PET_W * PET_H])
            never reused until its completion callback has been consumed. */
         bool ok = pet_expand_strip(pixels, y, STRIP_ROWS, out);
         ESP_ERROR_CHECK(ok ? ESP_OK : ESP_ERR_INVALID_ARG);
-        if (pending) wait_display();
+        if (pending) {
+            wait_display();
+        }
         ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel, 0, y, DISPLAY_W, y + STRIP_ROWS, out));
         pending = true;
     }
-    if (pending) wait_display();
+    if (pending) {
+        wait_display();
+    }
 }
 void board_brightness(unsigned level)
 {
@@ -110,13 +119,15 @@ void board_brightness(unsigned level)
 static i2c_master_dev_handle_t add_device(uint8_t address)
 {
     i2c_master_dev_handle_t dev;
-    i2c_device_config_t cfg = {.dev_addr_length = I2C_ADDR_BIT_LEN_7,
-                              .device_address = address, .scl_speed_hz = 400000};
+    i2c_device_config_t cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7, .device_address = address, .scl_speed_hz = 400000};
     ESP_ERROR_CHECK(i2c_master_bus_add_device(i2c, &cfg, &dev));
     return dev;
 }
 static esp_err_t read_reg(i2c_master_dev_handle_t dev, uint8_t reg, void *buf, size_t size)
-{ return i2c_master_transmit_receive(dev, &reg, 1, buf, size, IO_TIMEOUT_MS); }
+{
+    return i2c_master_transmit_receive(dev, &reg, 1, buf, size, IO_TIMEOUT_MS);
+}
 static esp_err_t write_reg(i2c_master_dev_handle_t dev, uint8_t reg, uint8_t val)
 {
     uint8_t data[] = {reg, val};
@@ -127,12 +138,17 @@ static void IRAM_ATTR touch_interrupt(void *arg)
     (void)arg;
     BaseType_t wake = pdFALSE;
     vTaskNotifyGiveFromISR(sensor_task_handle, &wake);
-    if (wake) portYIELD_FROM_ISR();
+    if (wake) {
+        portYIELD_FROM_ISR();
+    }
 }
 static void send_event(board_status_t *s, input_event_t e)
 {
-    if (xQueueSend(events, &e, 0) != pdTRUE) s->dropped++;
-    else s->events++;
+    if (xQueueSend(events, &e, 0) != pdTRUE) {
+        s->dropped++;
+    } else {
+        s->events++;
+    }
 }
 static void sensor_task(void *context)
 {
@@ -152,22 +168,35 @@ static void sensor_task(void *context)
             if (read_reg(touch, 0x02, report, sizeof(report)) == ESP_OK) {
                 s.touch_ok = true;
                 s.touch_reads++;
-                bool down; int x = s.touch_x, y = s.touch_y;
+                bool down;
+                int x = s.touch_x, y = s.touch_y;
                 if (touch_decode(report, &down, &x, &y)) {
                     input_event_t event;
-                    if (down && !s.touch_down) s.touch_presses++;
-                    if (!down && s.touch_down) s.touch_releases++;
-                    if (down != s.touch_down)
+                    if (down && !s.touch_down) {
+                        s.touch_presses++;
+                    }
+                    if (!down && s.touch_down) {
+                        s.touch_releases++;
+                    }
+                    if (down != s.touch_down) {
                         ESP_LOGI(TAG, "CONTACT down=%d xy=(%d,%d)", down, x, y);
-                    s.touch_down = down; s.touch_x = x; s.touch_y = y;
-                    if (gesture_update(&gesture, down, x, y, now, &event)) send_event(&s, event);
+                    }
+                    s.touch_down = down;
+                    s.touch_x = x;
+                    s.touch_y = y;
+                    if (gesture_update(&gesture, down, x, y, now, &event)) {
+                        send_event(&s, event);
+                    }
                     last_touch_success = now;
                 } else {
                     // Unsupported multi-contact/edge reports are not I2C faults.
                     // Retain a separate counter while rejecting their coordinates.
                     s.ignored_reports++;
                 }
-            } else { s.errors++; ESP_LOGW(TAG, "touch read failed"); }
+            } else {
+                s.errors++;
+                ESP_LOGW(TAG, "touch read failed");
+            }
             if (s.touch_down && now - last_touch_success > 150) {
                 gesture = (gesture_t){0};
                 s.touch_down = false; // Cancel a failed contact, never synthesize a tap.
@@ -176,12 +205,17 @@ static void sensor_task(void *context)
         if (imu && now - last_imu >= 20) {
             uint8_t raw[6];
             if (read_reg(imu, 0x35, raw, sizeof(raw)) == ESP_OK) {
-                for (int i = 0; i < 3; ++i)
-                    s.accel[i] = (int16_t)((uint16_t)raw[i * 2] |
-                                         ((uint16_t)raw[i * 2 + 1] << 8)) / 4096.0f;
-                if (motion_update(&s.motion, s.accel, now - last_imu))
+                for (int i = 0; i < 3; ++i) {
+                    s.accel[i] =
+                        (int16_t)((uint16_t)raw[i * 2] | ((uint16_t)raw[i * 2 + 1] << 8)) / 4096.0f;
+                }
+                if (motion_update(&s.motion, s.accel, now - last_imu)) {
                     send_event(&s, (input_event_t){PET_SHAKE, 0, 0});
-            } else { s.errors++; ESP_LOGW(TAG, "IMU read failed"); }
+                }
+            } else {
+                s.errors++;
+                ESP_LOGW(TAG, "IMU read failed");
+            }
             last_imu = now;
         }
         if (s.errors != logged_errors && now - last_log > 10000) {
@@ -195,9 +229,12 @@ static void sensor_task(void *context)
 void board_init(void)
 {
     display_open();
-    i2c_master_bus_config_t bus = {.i2c_port = I2C_NUM_0, .sda_io_num = 40,
-                                  .scl_io_num = 39, .clk_source = I2C_CLK_SRC_DEFAULT,
-                                  .glitch_ignore_cnt = 7, .flags.enable_internal_pullup = true};
+    i2c_master_bus_config_t bus = {.i2c_port = I2C_NUM_0,
+                                   .sda_io_num = 40,
+                                   .scl_io_num = 39,
+                                   .clk_source = I2C_CLK_SRC_DEFAULT,
+                                   .glitch_ignore_cnt = 7,
+                                   .flags.enable_internal_pullup = true};
     ESP_ERROR_CHECK(i2c_new_master_bus(&bus, &i2c));
     /* A CPU/USB reset does not reset the FT3168. It may still be in monitor
        mode and NACK a probe. Always arm the wake IRQ on this touch board. */
@@ -205,44 +242,67 @@ void board_init(void)
     if (i2c_master_probe(i2c, 0x38, 50) == ESP_OK && write_reg(touch, 0, 0) == ESP_OK) {
         touch_seen_at_boot = true;
         ESP_LOGI(TAG, "FT3168 ready address=0x38 interrupt=41");
-    } else ESP_LOGI(TAG, "FT3168 awaiting touch wake interrupt on GPIO41");
+    } else {
+        ESP_LOGI(TAG, "FT3168 awaiting touch wake interrupt on GPIO41");
+    }
     static const uint8_t addresses[] = {0x6b, 0x6a};
     for (unsigned i = 0; i < sizeof(addresses); ++i) {
-        if (i2c_master_probe(i2c, addresses[i], 50) != ESP_OK) continue;
+        if (i2c_master_probe(i2c, addresses[i], 50) != ESP_OK) {
+            continue;
+        }
         i2c_master_dev_handle_t dev = add_device(addresses[i]);
         uint8_t id = 0;
         if (read_reg(dev, 0, &id, 1) == ESP_OK && id == 5) {
             // QMI8658: address auto-increment, 8 g range / 125 Hz; accel only.
             const uint8_t regs[][2] = {{8, 0}, {2, 0x60}, {3, 0x26}, {6, 0}, {8, 1}};
             bool ok = true;
-            for (unsigned n = 0; n < sizeof(regs) / sizeof(regs[0]); ++n)
-                if (write_reg(dev, regs[n][0], regs[n][1]) != ESP_OK) ok = false;
+            for (unsigned n = 0; n < sizeof(regs) / sizeof(regs[0]); ++n) {
+                if (write_reg(dev, regs[n][0], regs[n][1]) != ESP_OK) {
+                    ok = false;
+                }
+            }
             if (ok) {
                 imu = dev;
                 vTaskDelay(pdMS_TO_TICKS(80));
-                ESP_LOGI(TAG, "QMI8658 ready address=0x%02x id=%u accel=8g/125Hz", addresses[i], id);
+                ESP_LOGI(TAG, "QMI8658 ready address=0x%02x id=%u accel=8g/125Hz", addresses[i],
+                         id);
                 break;
             }
         }
         ESP_ERROR_CHECK(i2c_master_bus_rm_device(dev));
     }
-    if (!imu) ESP_LOGW(TAG, "IMU absent; autonomous and touch behavior remain available");
+    if (!imu) {
+        ESP_LOGW(TAG, "IMU absent; autonomous and touch behavior remain available");
+    }
     events = xQueueCreate(8, sizeof(input_event_t));
     status_queue = xQueueCreate(1, sizeof(board_status_t));
     ESP_ERROR_CHECK(events && status_queue ? ESP_OK : ESP_ERR_NO_MEM);
-    gpio_config_t button = {.pin_bit_mask = 1ULL, .mode = GPIO_MODE_INPUT,
-                            .pull_up_en = GPIO_PULLUP_ENABLE};
+    gpio_config_t button = {
+        .pin_bit_mask = 1ULL, .mode = GPIO_MODE_INPUT, .pull_up_en = GPIO_PULLUP_ENABLE};
     ESP_ERROR_CHECK(gpio_config(&button));
     ESP_ERROR_CHECK(xTaskCreatePinnedToCore(sensor_task, "sensors", 4096, NULL, 4,
-                                          &sensor_task_handle, 0) == pdPASS ? ESP_OK : ESP_ERR_NO_MEM);
+                                            &sensor_task_handle, 0) == pdPASS
+                        ? ESP_OK
+                        : ESP_ERR_NO_MEM);
     if (touch) {
-        gpio_config_t irq = {.pin_bit_mask = 1ULL << TOUCH_INT, .mode = GPIO_MODE_INPUT,
-                             .pull_up_en = GPIO_PULLUP_ENABLE, .intr_type = GPIO_INTR_NEGEDGE};
+        gpio_config_t irq = {.pin_bit_mask = 1ULL << TOUCH_INT,
+                             .mode = GPIO_MODE_INPUT,
+                             .pull_up_en = GPIO_PULLUP_ENABLE,
+                             .intr_type = GPIO_INTR_NEGEDGE};
         ESP_ERROR_CHECK(gpio_config(&irq));
         ESP_ERROR_CHECK(gpio_install_isr_service(0));
         ESP_ERROR_CHECK(gpio_isr_handler_add(TOUCH_INT, touch_interrupt, NULL));
     }
 }
-bool board_event(input_event_t *e) { return xQueueReceive(events, e, 0) == pdTRUE; }
-void board_status(board_status_t *s) { xQueuePeek(status_queue, s, 0); }
-bool board_button(void) { return gpio_get_level(0) == 0; }
+bool board_event(input_event_t *e)
+{
+    return xQueueReceive(events, e, 0) == pdTRUE;
+}
+void board_status(board_status_t *s)
+{
+    xQueuePeek(status_queue, s, 0);
+}
+bool board_button(void)
+{
+    return gpio_get_level(0) == 0;
+}

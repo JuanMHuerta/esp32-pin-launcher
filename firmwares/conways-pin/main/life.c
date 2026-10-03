@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include "life.h"
 
 #include <stdbool.h>
@@ -13,13 +14,10 @@ static uint32_t random32(life_t *life)
     return x;
 }
 
-static void rotate_cell(int dx, int dy, int width, int height, int rotation,
-                        int *x, int *y)
+static void rotate_cell(int dx, int dy, int width, int height, int rotation, int *x, int *y)
 {
-    *x = rotation == 1 ? height - 1 - dy :
-         rotation == 2 ? width - 1 - dx : rotation == 3 ? dy : dx;
-    *y = rotation == 1 ? dx : rotation == 2 ? height - 1 - dy :
-         rotation == 3 ? width - 1 - dx : dy;
+    *x = rotation == 1 ? height - 1 - dy : rotation == 2 ? width - 1 - dx : rotation == 3 ? dy : dx;
+    *y = rotation == 1 ? dx : rotation == 2 ? height - 1 - dy : rotation == 3 ? width - 1 - dx : dy;
 }
 
 static const uint8_t glider[5][2] = {
@@ -41,9 +39,7 @@ static const uint8_t diehard[7][2] = {
 };
 
 static const uint8_t solid_square[9][2] = {
-    {0, 0}, {1, 0}, {2, 0},
-    {0, 1}, {1, 1}, {2, 1},
-    {0, 2}, {1, 2}, {2, 2},
+    {0, 0}, {1, 0}, {2, 0}, {0, 1}, {1, 1}, {2, 1}, {0, 2}, {1, 2}, {2, 2},
 };
 
 typedef struct {
@@ -57,20 +53,20 @@ static pattern_t stamp_pattern(life_stamp_kind_t kind)
 {
     switch (kind) {
     case LIFE_STAMP_B_HEPTOMINO:
-        return (pattern_t) {b_heptomino, 7, 4, 3};
+        return (pattern_t){b_heptomino, 7, 4, 3};
     case LIFE_STAMP_DIEHARD:
-        return (pattern_t) {diehard, 7, 8, 3};
+        return (pattern_t){diehard, 7, 8, 3};
     case LIFE_STAMP_SQUARE:
-        return (pattern_t) {solid_square, 9, 3, 3};
+        return (pattern_t){solid_square, 9, 3, 3};
     case LIFE_STAMP_R_PENTOMINO:
     default:
-        return (pattern_t) {r_pentomino, 5, 3, 3};
+        return (pattern_t){r_pentomino, 5, 3, 3};
     }
 }
 
 void life_init(life_t *life, uint8_t *first, uint8_t *second, uint32_t seed)
 {
-    *life = (life_t) {
+    *life = (life_t){
         .current = first,
         .next = second,
         .rng = seed ? seed : 0x6d2b79f5,
@@ -96,8 +92,7 @@ void life_seed(life_t *life)
         const uint8_t (*pattern)[2] = (tile + phase) % 5 == 0 ? r_pentomino : glider;
         for (int cell = 0; cell < 5; ++cell) {
             int dx, dy;
-            rotate_cell(pattern[cell][0], pattern[cell][1], 3, 3,
-                        rotation, &dx, &dy);
+            rotate_cell(pattern[cell][0], pattern[cell][1], 3, 3, rotation, &dx, &dy);
             life->current[(y0 + dy) * LIFE_WIDTH + x0 + dx] = LIFE_ALIVE;
         }
     }
@@ -112,8 +107,7 @@ int life_stamp(life_t *life, int cell_x, int cell_y)
     return life_stamp_pattern(life, cell_x, cell_y, kind, rotation);
 }
 
-int life_stamp_pattern(life_t *life, int cell_x, int cell_y,
-                       life_stamp_kind_t kind, int rotation)
+int life_stamp_pattern(life_t *life, int cell_x, int cell_y, life_stamp_kind_t kind, int rotation)
 {
     const pattern_t pattern = stamp_pattern(kind);
     rotation &= 3;
@@ -121,15 +115,23 @@ int life_stamp_pattern(life_t *life, int cell_x, int cell_y,
     const int height = rotation & 1 ? pattern.width : pattern.height;
     int x0 = cell_x - width / 2;
     int y0 = cell_y - height / 2;
-    if (x0 < 0) x0 = 0;
-    if (y0 < 0) y0 = 0;
-    if (x0 > LIFE_WIDTH - width) x0 = LIFE_WIDTH - width;
-    if (y0 > LIFE_HEIGHT - height) y0 = LIFE_HEIGHT - height;
+    if (x0 < 0) {
+        x0 = 0;
+    }
+    if (y0 < 0) {
+        y0 = 0;
+    }
+    if (x0 > LIFE_WIDTH - width) {
+        x0 = LIFE_WIDTH - width;
+    }
+    if (y0 > LIFE_HEIGHT - height) {
+        y0 = LIFE_HEIGHT - height;
+    }
     int added = 0;
     for (int cell = 0; cell < pattern.count; ++cell) {
         int dx, dy;
-        rotate_cell(pattern.cells[cell][0], pattern.cells[cell][1],
-                    pattern.width, pattern.height, rotation, &dx, &dy);
+        rotate_cell(pattern.cells[cell][0], pattern.cells[cell][1], pattern.width, pattern.height,
+                    rotation, &dx, &dy);
         uint8_t *state = &life->current[(y0 + dy) * LIFE_WIDTH + x0 + dx];
         added += *state < LIFE_ALIVE;
         *state = LIFE_ALIVE;
@@ -143,9 +145,10 @@ int life_inject_edge(life_t *life)
     const unsigned launch = life->launches++;
     const int edge = launch & 3; // top, right, bottom, left
     const int alternate = (launch >> 2) & 1;
-    const int rotation = edge == 0 ? (alternate ? 1 : 0) :
-                         edge == 1 ? (alternate ? 1 : 2) :
-                         edge == 2 ? (alternate ? 3 : 2) : (alternate ? 3 : 0);
+    const int rotation = edge == 0   ? (alternate ? 1 : 0)
+                         : edge == 1 ? (alternate ? 1 : 2)
+                         : edge == 2 ? (alternate ? 3 : 2)
+                                     : (alternate ? 3 : 0);
     const int span = (edge & 1) ? LIFE_HEIGHT : LIFE_WIDTH;
 
     for (int attempt = 0; attempt < 16; ++attempt) {
@@ -166,8 +169,7 @@ int life_inject_edge(life_t *life)
         }
         for (int cell = 0; cell < 5; ++cell) {
             int dx, dy;
-            rotate_cell(glider[cell][0], glider[cell][1], 3, 3,
-                        rotation, &dx, &dy);
+            rotate_cell(glider[cell][0], glider[cell][1], 3, 3, rotation, &dx, &dy);
             life->current[(y0 + dy) * LIFE_WIDTH + x0 + dx] = LIFE_ALIVE;
         }
         return 1;

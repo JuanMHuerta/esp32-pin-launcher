@@ -1,0 +1,4 @@
+Pillow>=10,<13
+pyserial>=3.5,<4
+ruff==0.16.10
+clang-format==23.1.2

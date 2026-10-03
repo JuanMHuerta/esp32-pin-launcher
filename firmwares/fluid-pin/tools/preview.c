@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include "fluid.h"
 #include "render.h"
 
@@ -7,7 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void write_preview(fluid_renderer *renderer, const fluid_snapshot *snapshot, const char *path)
+static void write_preview(fluid_renderer *renderer, const fluid_snapshot *snapshot,
+                          const char *path)
 {
     render_reconstruct(renderer, snapshot);
     FILE *file = fopen(path, "wb");
@@ -20,8 +22,7 @@ static void write_preview(fluid_renderer *renderer, const fluid_snapshot *snapsh
         assert(band[PANEL_W * FLOW_BAND_ROWS] == 0xabcd);
         for (int i = 0; i < PANEL_W * FLOW_BAND_ROWS; ++i) {
             uint16_t color = __builtin_bswap16(band[i]);
-            uint8_t rgb[3] = {((color >> 11) & 31) * 255 / 31,
-                              ((color >> 5) & 63) * 255 / 63,
+            uint8_t rgb[3] = {((color >> 11) & 31) * 255 / 31, ((color >> 5) & 63) * 255 / 63,
                               (color & 31) * 255 / 31};
             fwrite(rgb, 1, sizeof(rgb), file);
         }
@@ -29,7 +30,8 @@ static void write_preview(fluid_renderer *renderer, const fluid_snapshot *snapsh
     fclose(file);
 }
 
-static fluid_metrics publish_and_check(fluid_t *fluid, fluid_snapshot *snapshot, fluid_renderer *renderer)
+static fluid_metrics publish_and_check(fluid_t *fluid, fluid_snapshot *snapshot,
+                                       fluid_renderer *renderer)
 {
     fluid_publish(fluid, snapshot);
     render_reconstruct(renderer, snapshot);
@@ -41,7 +43,7 @@ static fluid_metrics publish_and_check(fluid_t *fluid, fluid_snapshot *snapshot,
 }
 
 static fluid_metrics advance(fluid_t *fluid, fluid_snapshot *snapshot, fluid_renderer *renderer,
-                              int count, float ax, float ay)
+                             int count, float ax, float ay)
 {
     fluid_metrics metrics = {0};
     for (int i = 0; i < count; ++i) {
@@ -63,7 +65,8 @@ static void synthetic_stress(fluid_t *fluid, fluid_snapshot *snapshot, fluid_ren
     assert(after_impulses.particle_count == 573);
     assert(after_impulses.resets == 0);
     printf("impulses n=%d mass=%.6f ceiling=%d max_speed=%.3f\n", after_impulses.particle_count,
-           after_impulses.render_mass_ratio, after_impulses.ceiling_particles, after_impulses.maximum_speed);
+           after_impulses.render_mass_ratio, after_impulses.ceiling_particles,
+           after_impulses.maximum_speed);
 }
 
 static void simulated_long_run(fluid_t *fluid, fluid_snapshot *snapshot, fluid_renderer *renderer)
@@ -81,12 +84,15 @@ static void simulated_long_run(fluid_t *fluid, fluid_snapshot *snapshot, fluid_r
             ay += 2.0f * GRAVITY * sinf(angle);
         }
         assert(fluid_step(fluid, ax, ay));
-        if ((step % 20) == 0) (void)publish_and_check(fluid, snapshot, renderer);
+        if ((step % 20) == 0) {
+            (void)publish_and_check(fluid, snapshot, renderer);
+        }
     }
     fluid_metrics metrics = publish_and_check(fluid, snapshot, renderer);
     assert(metrics.particle_count == PARTICLE_COUNT && metrics.resets == 0);
     printf("30min-sim n=%d mass=%.6f ceiling=%d avg_speed=%.4f resets=%u\n", metrics.particle_count,
-           metrics.render_mass_ratio, metrics.ceiling_particles, metrics.average_speed, metrics.resets);
+           metrics.render_mass_ratio, metrics.ceiling_particles, metrics.average_speed,
+           metrics.resets);
 }
 
 int main(int argc, char **argv)
@@ -100,15 +106,17 @@ int main(int argc, char **argv)
     fluid_metrics initial = publish_and_check(fluid, &snapshot, renderer);
     printf("V9 n=%d solver_bytes=%zu initial_mass=%.6f\n", initial.particle_count,
            fluid_memory_bytes(), initial.render_mass_ratio);
-    write_preview(renderer, &snapshot, "/tmp/v9-seed.ppm");
+    write_preview(renderer, &snapshot, "fluid-seed.ppm");
 
     synthetic_stress(fluid, &snapshot, renderer);
     fluid_metrics five_seconds = advance(fluid, &snapshot, renderer, 5 * PHYSICS_HZ, 0.0f, GRAVITY);
-    printf("five_seconds ceiling=%d avg_speed=%.4f\n", five_seconds.ceiling_particles, five_seconds.average_speed);
+    printf("five_seconds ceiling=%d avg_speed=%.4f\n", five_seconds.ceiling_particles,
+           five_seconds.average_speed);
     assert(five_seconds.ceiling_particles <= 4);
     fluid_metrics settled = advance(fluid, &snapshot, renderer, 10 * PHYSICS_HZ, 0.0f, GRAVITY);
-    printf("settled ceiling=%d avg_speed=%.4f max_speed=%.4f div=%.4f->%.4f\n", settled.ceiling_particles,
-           settled.average_speed, settled.maximum_speed, settled.divergence_before, settled.divergence_after);
+    printf("settled ceiling=%d avg_speed=%.4f max_speed=%.4f div=%.4f->%.4f\n",
+           settled.ceiling_particles, settled.average_speed, settled.maximum_speed,
+           settled.divergence_before, settled.divergence_after);
     assert(settled.ceiling_particles == 0);
     assert(settled.average_speed < 0.35f);
     assert(settled.resets == 0);
@@ -116,13 +124,15 @@ int main(int argc, char **argv)
      * visual-mass check: projection should remove most residual divergence. */
     assert(settled.divergence_after < 0.05f);
     assert(settled.divergence_after < settled.divergence_before * 0.25f);
-    write_preview(renderer, &snapshot, "/tmp/v9-settled.ppm");
+    write_preview(renderer, &snapshot, "fluid-settled.ppm");
 
     fluid_metrics right = advance(fluid, &snapshot, renderer, 4 * PHYSICS_HZ, GRAVITY, 0.0f);
     assert(right.particle_count == PARTICLE_COUNT);
     assert(right.resets == 0);
-    write_preview(renderer, &snapshot, "/tmp/v9-right.ppm");
-    if (soak) simulated_long_run(fluid, &snapshot, renderer);
+    write_preview(renderer, &snapshot, "fluid-right.ppm");
+    if (soak) {
+        simulated_long_run(fluid, &snapshot, renderer);
+    }
 
     assert(!fluid_step(fluid, NAN, 0.0f));
     assert(fluid_step(fluid, 0.0f, GRAVITY));
@@ -130,5 +140,6 @@ int main(int argc, char **argv)
     assert(!fluid_step(fluid, 0.0f, GRAVITY));
     fluid_destroy(fluid);
     render_destroy(renderer);
-    puts("PASS: particle conservation, render-mass invariant, 20 impulses, ceiling recovery, settling, pixel bands");
+    puts("PASS: particle conservation, render-mass invariant, 20 impulses, ceiling recovery, "
+         "settling, pixel bands");
 }

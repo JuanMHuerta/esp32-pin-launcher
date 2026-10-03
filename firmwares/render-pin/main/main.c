@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -56,7 +57,9 @@ static TaskHandle_t touch_task_handle;
 static QueueHandle_t touch_events;
 static renderer_t scene;
 
-typedef struct { uint16_t x, y; } touch_t;
+typedef struct {
+    uint16_t x, y;
+} touch_t;
 typedef struct {
     motion_filter_t filter;
     int64_t last_sample_us;
@@ -75,8 +78,8 @@ static const sh8601_lcd_init_cmd_t panel_init[] = {
     {0x51, (uint8_t[]){0xB8}, 1, 0},
 };
 
-static bool transfer_finished(esp_lcd_panel_io_handle_t io,
-                              esp_lcd_panel_io_event_data_t *event, void *context)
+static bool transfer_finished(esp_lcd_panel_io_handle_t io, esp_lcd_panel_io_event_data_t *event,
+                              void *context)
 {
     BaseType_t wake = pdFALSE;
     xSemaphoreGiveFromISR((SemaphoreHandle_t)context, &wake);
@@ -88,16 +91,14 @@ static esp_lcd_panel_handle_t open_display(void)
     display_done = xSemaphoreCreateBinary();
     ESP_ERROR_CHECK(display_done ? ESP_OK : ESP_ERR_NO_MEM);
     const spi_bus_config_t bus = SH8601_PANEL_BUS_QSPI_CONFIG(
-        LCD_CLK, LCD_D0, LCD_D1, LCD_D2, LCD_D3,
-        PIN_WIDTH * STRIP_ROWS * sizeof(uint16_t) + 64);
+        LCD_CLK, LCD_D0, LCD_D1, LCD_D2, LCD_D3, PIN_WIDTH * STRIP_ROWS * sizeof(uint16_t) + 64);
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &bus, SPI_DMA_CH_AUTO));
 
     esp_lcd_panel_io_handle_t io = NULL;
-    esp_lcd_panel_io_spi_config_t io_config = SH8601_PANEL_IO_QSPI_CONFIG(
-        LCD_CS, transfer_finished, display_done);
+    esp_lcd_panel_io_spi_config_t io_config =
+        SH8601_PANEL_IO_QSPI_CONFIG(LCD_CS, transfer_finished, display_done);
     io_config.trans_queue_depth = 1;
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST,
-                                              &io_config, &io));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &io_config, &io));
     sh8601_vendor_config_t vendor = {
         .init_cmds = panel_init,
         .init_cmds_size = sizeof(panel_init) / sizeof(panel_init[0]),
@@ -142,8 +143,7 @@ static i2c_master_dev_handle_t add_i2c_device(uint8_t address)
     return device;
 }
 
-static esp_err_t read_regs(i2c_master_dev_handle_t dev, uint8_t reg,
-                           uint8_t *data, size_t count)
+static esp_err_t read_regs(i2c_master_dev_handle_t dev, uint8_t reg, uint8_t *data, size_t count)
 {
     return i2c_master_transmit_receive(dev, &reg, 1, data, count, 20);
 }
@@ -181,22 +181,22 @@ static void open_imu(void)
 
 static void sample_imu(motion_t *motion, int64_t now_us)
 {
-    if (!imu_device) return;
+    if (!imu_device) {
+        return;
+    }
     uint8_t sample[12];
     if (read_regs(imu_device, QMI_ACCEL_X, sample, sizeof(sample)) != ESP_OK) {
         return;
     }
     float accel[3];
     for (int axis = 0; axis < 3; ++axis) {
-        int16_t raw = (int16_t)((uint16_t)sample[axis * 2] |
-                                ((uint16_t)sample[axis * 2 + 1] << 8));
+        int16_t raw = (int16_t)((uint16_t)sample[axis * 2] | ((uint16_t)sample[axis * 2 + 1] << 8));
         accel[axis] = raw / 4096.0f;
     }
     float gyro[3];
     for (int axis = 0; axis < 3; ++axis) {
         int offset = 6 + axis * 2;
-        int16_t raw = (int16_t)((uint16_t)sample[offset] |
-                               ((uint16_t)sample[offset + 1] << 8));
+        int16_t raw = (int16_t)((uint16_t)sample[offset] | ((uint16_t)sample[offset + 1] << 8));
         gyro[axis] = raw / 32.0f;
     }
     float dt = motion->last_sample_us ? (now_us - motion->last_sample_us) / 1000000.0f : 0.04f;
@@ -209,7 +209,9 @@ static void IRAM_ATTR touch_interrupt(void *context)
 {
     BaseType_t wake = pdFALSE;
     vTaskNotifyGiveFromISR(touch_task_handle, &wake);
-    if (wake == pdTRUE) portYIELD_FROM_ISR();
+    if (wake == pdTRUE) {
+        portYIELD_FROM_ISR();
+    }
 }
 
 static void touch_task(void *context)
@@ -236,7 +238,9 @@ static void touch_task(void *context)
             was_down = false;
             continue;
         }
-        if (event != 0 && event != 2) continue;
+        if (event != 0 && event != 2) {
+            continue;
+        }
         int64_t now = esp_timer_get_time();
         if (!was_down || (event == 0 && now - last_report_us > 300000)) {
             /* First FT3168 coordinate is screen Y; second is screen X. */
@@ -264,8 +268,10 @@ static void open_touch(void)
         .intr_type = GPIO_INTR_NEGEDGE,
     };
     ESP_ERROR_CHECK(gpio_config(&gpio));
-    ESP_ERROR_CHECK(xTaskCreate(touch_task, "ft3168_touch", 3072, NULL, 5,
-                                &touch_task_handle) == pdPASS ? ESP_OK : ESP_ERR_NO_MEM);
+    ESP_ERROR_CHECK(xTaskCreate(touch_task, "ft3168_touch", 3072, NULL, 5, &touch_task_handle) ==
+                            pdPASS
+                        ? ESP_OK
+                        : ESP_ERR_NO_MEM);
     ESP_ERROR_CHECK(gpio_install_isr_service(0));
     ESP_ERROR_CHECK(gpio_isr_handler_add(TOUCH_INT, touch_interrupt, NULL));
     ESP_LOGI(TAG, "FT3168 interrupt input installed; tap to change palette");
@@ -300,9 +306,8 @@ void app_main(void)
     uint32_t render_time_ms = 0;
     uint32_t wait_time_ms = 0;
     int64_t report_start_us = start_us;
-    ESP_LOGI(TAG, "Lumen pin: %dx%d, %d fps target, %d-row DMA strips, pipeline=%s",
-             PIN_WIDTH, PIN_HEIGHT, 1000 / FRAME_MS, STRIP_ROWS,
-             strips[1] ? "on" : "off");
+    ESP_LOGI(TAG, "Lumen pin: %dx%d, %d fps target, %d-row DMA strips, pipeline=%s", PIN_WIDTH,
+             PIN_HEIGHT, 1000 / FRAME_MS, STRIP_ROWS, strips[1] ? "on" : "off");
     while (true) {
         int64_t now = esp_timer_get_time();
         sample_imu(&motion, now);
@@ -315,11 +320,12 @@ void app_main(void)
             ESP_LOGI(TAG, "palette=%u touch=(%u,%u)", mood, touch.x, touch.y);
         }
         int32_t age_ms = (int32_t)((now - pulse_start_us) / 1000);
-        if (age_ms > 1900) age_ms = -1;
-        renderer_prepare(&scene, (int32_t)((now - start_us) / 1000),
-                         motion.filter.view_x, motion.filter.view_y, motion.filter.roll,
-                         motion.filter.energy,
-                         mood, pulse_x, pulse_y, age_ms);
+        if (age_ms > 1900) {
+            age_ms = -1;
+        }
+        renderer_prepare(&scene, (int32_t)((now - start_us) / 1000), motion.filter.view_x,
+                         motion.filter.view_y, motion.filter.roll, motion.filter.energy, mood,
+                         pulse_x, pulse_y, age_ms);
         int64_t draw_start = esp_timer_get_time();
         bool transfer_pending = false;
         for (int y = 0; y < PIN_HEIGHT; y += STRIP_ROWS) {
@@ -344,8 +350,8 @@ void app_main(void)
                 }
                 wait_time_ms += (uint32_t)((esp_timer_get_time() - wait_start) / 1000);
             }
-            ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel, 0, y,
-                                                      PIN_WIDTH, y + STRIP_ROWS, strip));
+            ESP_ERROR_CHECK(
+                esp_lcd_panel_draw_bitmap(panel, 0, y, PIN_WIDTH, y + STRIP_ROWS, strip));
             transfer_pending = true;
         }
         if (transfer_pending) {
@@ -360,13 +366,15 @@ void app_main(void)
         vTaskDelayUntil(&frame_tick, pdMS_TO_TICKS(FRAME_MS));
         if (++frame_count == 100) {
             int64_t elapsed_us = esp_timer_get_time() - report_start_us;
-            ESP_LOGI(TAG, "fps=%lu work=%lu ms render=%lu ms wait=%lu ms heap=%lu imu=%lu/100 view=(%.2f,%.2f) roll=%.1f",
+            ESP_LOGI(TAG,
+                     "fps=%lu work=%lu ms render=%lu ms wait=%lu ms heap=%lu imu=%lu/100 "
+                     "view=(%.2f,%.2f) roll=%.1f",
                      (unsigned long)(100000000LL / elapsed_us),
                      (unsigned long)(work_time_ms / frame_count),
                      (unsigned long)(render_time_ms / frame_count),
                      (unsigned long)(wait_time_ms / frame_count),
-                     (unsigned long)esp_get_free_heap_size(),
-                     (unsigned long)motion.samples, motion.filter.view_x, motion.filter.view_y, motion.filter.roll);
+                     (unsigned long)esp_get_free_heap_size(), (unsigned long)motion.samples,
+                     motion.filter.view_x, motion.filter.view_y, motion.filter.roll);
             frame_count = 0;
             work_time_ms = 0;
             render_time_ms = 0;

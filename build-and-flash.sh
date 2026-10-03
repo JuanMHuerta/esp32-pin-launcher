@@ -1,39 +1,59 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-only
 set -euo pipefail
 
 root_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-port=${1:-/dev/serial/by-id/usb-Espressif_USB_JTAG_serial_debug_unit_A0:85:E3:E7:A7:F0-if00}
 
-if [[ ! -e "$port" ]]; then
+usage() {
+    echo "Usage: $0 --build-only | SERIAL_PORT"
+    echo "Build the launcher and all apps. With a serial port, flash and verify all images."
+}
+
+if [[ $# -ne 1 ]]; then
+    usage >&2
+    exit 2
+fi
+case "$1" in
+    --help|-h) usage; exit 0 ;;
+    --build-only) build_only=true ;;
+    -*) usage >&2; exit 2 ;;
+    *) build_only=false; port=$1 ;;
+esac
+
+if ! command -v idf.py >/dev/null; then
+    echo "Source your ESP-IDF 5.5.x export.sh before running this script." >&2
+    exit 1
+fi
+if [[ "$build_only" == false && ! -e "$port" ]]; then
     echo "Serial port not found: $port" >&2
     exit 1
 fi
 
-for app in conways-pin fluid-pin pet-pin render-pin mech-pin dungeon-pin maze-pin; do
-    idf.py -C "$root_dir/firmwares/$app" build
+project_list=$(python3 "$root_dir/tools/app_layout.py" projects)
+mapfile -t projects <<< "$project_list"
+for project in "${projects[@]}"; do
+    idf.py -C "$project" build
 done
+
+# Size the launcher before checking it against the regenerated partition table.
+idf.py -C "$root_dir" reconfigure
+cmake --build "$root_dir/build" --target gen_project_binary
+python3 "$root_dir/tools/app_layout.py" generate
 idf.py -C "$root_dir" build
+python3 "$root_dir/tools/app_layout.py" check --compiled
+
+if [[ "$build_only" == true ]]; then
+    echo "Built launcher and ${#projects[@]} apps."
+    exit 0
+fi
+
+# One argument per line preserves image paths containing spaces.
+app_args=$(python3 "$root_dir/tools/app_layout.py" flash-args)
+mapfile -t app_flash_args <<< "$app_args"
 idf.py -C "$root_dir" -p "$port" flash
+esptool.py --chip esp32s3 -p "$port" -b 460800 write_flash "${app_flash_args[@]}"
+esptool.py --chip esp32s3 -p "$port" -b 460800 verify_flash "${app_flash_args[@]}"
 
-esptool.py --chip esp32s3 -p "$port" -b 460800 write_flash \
-    0xa0000  "$root_dir/firmwares/conways-pin/build/conways_pin.bin" \
-    0x1a0000 "$root_dir/firmwares/fluid-pin/build/fluid_pin.bin" \
-    0x2a0000 "$root_dir/firmwares/pet-pin/build/miso_pin.bin" \
-    0x3a0000 "$root_dir/firmwares/render-pin/build/lumen_pin.bin" \
-    0x4a0000 "$root_dir/firmwares/mech-pin/build/mech_bay_07.bin" \
-    0x5a0000 "$root_dir/firmwares/dungeon-pin/build/dungeon_seed.bin" \
-    0x6a0000 "$root_dir/firmwares/maze-pin/build/maze_pin.bin"
-
-esptool.py --chip esp32s3 -p "$port" -b 460800 verify_flash \
-    0xa0000  "$root_dir/firmwares/conways-pin/build/conways_pin.bin" \
-    0x1a0000 "$root_dir/firmwares/fluid-pin/build/fluid_pin.bin" \
-    0x2a0000 "$root_dir/firmwares/pet-pin/build/miso_pin.bin" \
-    0x3a0000 "$root_dir/firmwares/render-pin/build/lumen_pin.bin" \
-    0x4a0000 "$root_dir/firmwares/mech-pin/build/mech_bay_07.bin" \
-    0x5a0000 "$root_dir/firmwares/dungeon-pin/build/dungeon_seed.bin" \
-    0x6a0000 "$root_dir/firmwares/maze-pin/build/maze_pin.bin"
-
-# An earlier cartridge may be selected in otadata. Empty otadata boots factory.
+# Clearing OTA selection makes the next reset boot the factory launcher.
 esptool.py --chip esp32s3 -p "$port" -b 460800 erase_region 0xf000 0x2000
-
-echo "Flashed launcher and seven cartridges, including 3D MAZE. Reset the board to open the launcher."
+echo "Flashed and verified launcher and ${#projects[@]} apps. Reset the board to open the launcher."

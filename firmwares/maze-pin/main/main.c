@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include "app_switcher.h"
 #include "board.h"
 #include "maze.h"
@@ -19,7 +20,8 @@ void app_main(void)
     board_init();
     maze_t maze;
     maze_init(&maze, (uint32_t)esp_timer_get_time() ^ (uint32_t)esp_random());
-    ESP_LOGI(TAG, "3D MAZE %s: autoplay; hold BOOT 1.5s for launcher", esp_app_get_description()->version);
+    ESP_LOGI(TAG, "3D MAZE %s: autoplay; hold BOOT 1.5s for launcher",
+             esp_app_get_description()->version);
     int64_t previous = esp_timer_get_time(), deadline = previous;
     int64_t stats_at = previous;
     uint64_t paint_total = 0, present_total = 0;
@@ -44,15 +46,22 @@ void app_main(void)
         present_total += (uint64_t)(finished_at - present_at);
         ++frames;
         if (finished_at - stats_at >= 5000000) {
-            ESP_LOGI(TAG, "PERF fps=%lu paint=%luus display=%luus stack=%lu",
-                     (unsigned long)((uint64_t)frames * 1000000u / (uint64_t)(finished_at - stats_at)),
-                     (unsigned long)(paint_total / frames), (unsigned long)(present_total / frames),
-                     (unsigned long)uxTaskGetStackHighWaterMark(NULL));
-            stats_at = finished_at; paint_total = present_total = 0; frames = 0;
+            ESP_LOGI(
+                TAG, "PERF fps=%lu paint=%luus display=%luus stack=%lu",
+                (unsigned long)((uint64_t)frames * 1000000u / (uint64_t)(finished_at - stats_at)),
+                (unsigned long)(paint_total / frames), (unsigned long)(present_total / frames),
+                (unsigned long)uxTaskGetStackHighWaterMark(NULL));
+            stats_at = finished_at;
+            paint_total = present_total = 0;
+            frames = 0;
         }
         deadline += 25000;
         int64_t remain = deadline - esp_timer_get_time();
-        if (remain > 1000) vTaskDelay(pdMS_TO_TICKS((uint32_t)(remain / 1000)));
-        else if (remain <= 0) { deadline = esp_timer_get_time(); vTaskDelay(1); }
+        if (remain > 1000) {
+            vTaskDelay(pdMS_TO_TICKS((uint32_t)(remain / 1000)));
+        } else if (remain <= 0) {
+            deadline = esp_timer_get_time();
+            vTaskDelay(1);
+        }
     }
 }

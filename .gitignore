@@ -1,14 +1,17 @@
-# ESP-IDF build outputs and downloaded component caches are reproducible from
-# sdkconfig.defaults and dependencies.lock.
-/build/
-/managed_components/
-/firmwares/**/build/
-/firmwares/**/build-*/
-/firmwares/**/managed_components/
-/firmwares/**/artifacts/
-/firmwares/**/sdkconfig
+# Build outputs and downloaded components.
+**/build/
+**/build-*/
+**/managed_components/
+**/sdkconfig
+**/sdkconfig.old
+**/artifacts/
+**/.source-git-metadata/
+
+# Host environments and temporary outputs.
+.venv/
 **/__pycache__/
 *.pyc
-
-# Preserved source-project Git metadata; it must not become nested repositories.
-/firmwares/**/.source-git-metadata/
+*.ppm
+*.mpfs.tmp
+core
+core.[0-9]*

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include "fluid.h"
 #include "motion.h"
 #include "render.h"
@@ -6,7 +7,7 @@
 #include <math.h>
 #include <stdio.h>
 
-static const float identity[3][3] = {{1,0,0}, {0,1,0}, {0,0,1}};
+static const float identity[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 static const float g = 9.80665f;
 
 /* The previous input curve, evaluated on the same filtered IMU samples. */
@@ -15,7 +16,10 @@ static void previous_force(const motion_output *motion, float force[2])
     float x = motion->gravity[0] * TILT_RESPONSE_GAIN;
     float y = motion->gravity[1] * TILT_RESPONSE_GAIN;
     float length = hypotf(x, y);
-    if (length > g) { x *= g / length; y *= g / length; }
+    if (length > g) {
+        x *= g / length;
+        y *= g / length;
+    }
     force[0] = x + motion->fluid_acceleration[0] * PUSH_GAIN;
     force[1] = y + motion->fluid_acceleration[1] * PUSH_GAIN;
 }
@@ -59,8 +63,7 @@ int main(void)
             linear_x = 0.08f * g * sinf(phase + 0.5f);
             linear_y = 0.08f * g * sinf(phase + 1.2f);
         }
-        float accel[3] = {g * sinf(angle) + linear_x,
-                          g * cosf(angle) + linear_y, 0.0f};
+        float accel[3] = {g * sinf(angle) + linear_x, g * cosf(angle) + linear_y, 0.0f};
         float gyro[3] = {0.0f, 0.0f, angular_velocity};
         assert(motion_update(&filter, accel, gyro, imu_dt, identity, &motion));
 
@@ -68,10 +71,10 @@ int main(void)
             float old_force[2];
             previous_force(&motion, old_force);
             assert(fluid_step(previous, old_force[0] * GRAVITY / g, old_force[1] * GRAVITY / g));
-            assert(fluid_step_with_translation(walking, motion.force[0] * GRAVITY / g,
-                   motion.force[1] * GRAVITY / g,
-                   motion.translation_target[0] * motion.translation_scale[0],
-                   motion.translation_target[1] * motion.translation_scale[1]));
+            assert(fluid_step_with_translation(
+                walking, motion.force[0] * GRAVITY / g, motion.force[1] * GRAVITY / g,
+                motion.translation_target[0] * motion.translation_scale[0],
+                motion.translation_target[1] * motion.translation_scale[1]));
             fluid_get_metrics(previous, &old_metrics);
             fluid_get_metrics(walking, &new_metrics);
             assert(fluid_step(still, 0.0f, GRAVITY));
@@ -102,7 +105,9 @@ int main(void)
                 }
                 float occupancy = lit ? (float)changed / lit : 0;
                 occupancy_sum += occupancy;
-                if (occupancy > peak_occupancy) peak_occupancy = occupancy;
+                if (occupancy > peak_occupancy) {
+                    peak_occupancy = occupancy;
+                }
                 ++visual_frames;
             }
             next_physics += physics_dt;
@@ -117,12 +122,13 @@ int main(void)
            old_speed / gait_steps, new_speed / gait_steps);
     printf("after_rest old_speed=%.3f new_speed=%.3f mass=%.6f ceiling=%d resets=%u\n",
            old_metrics.average_speed, new_metrics.average_speed,
-           new_snapshot.metrics.render_mass_ratio, new_metrics.ceiling_particles, new_metrics.resets);
+           new_snapshot.metrics.render_mass_ratio, new_metrics.ceiling_particles,
+           new_metrics.resets);
     assert(new_x > old_x * 1.25);
     assert(new_y > old_y * 1.15);
     assert(new_speed > old_speed * 1.05);
-    printf("walk visible occupancy mean=%.3f peak=%.3f\n",
-           occupancy_sum / visual_frames, peak_occupancy);
+    printf("walk visible occupancy mean=%.3f peak=%.3f\n", occupancy_sum / visual_frames,
+           peak_occupancy);
     assert(occupancy_sum / visual_frames > 0.05f && peak_occupancy > 0.10f);
     assert(new_metrics.average_speed < 0.35f);
     assert(new_metrics.ceiling_particles == 0 && new_metrics.resets == 0);

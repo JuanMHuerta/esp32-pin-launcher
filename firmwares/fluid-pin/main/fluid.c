@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: GPL-3.0-only
+#ifndef ESP_PLATFORM
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "fluid.h"
 #include "hot.h"
 
@@ -50,13 +55,26 @@ typedef struct {
     float weight[4];
 } stencil;
 
-static inline int grid_index(int x, int y) { return y * GRID_X + x; }
-static inline float maximum(float a, float b) { return a > b ? a : b; }
-static inline float minimum(float a, float b) { return a < b ? a : b; }
+static inline int grid_index(int x, int y)
+{
+    return y * GRID_X + x;
+}
+static inline float maximum(float a, float b)
+{
+    return a > b ? a : b;
+}
+static inline float minimum(float a, float b)
+{
+    return a < b ? a : b;
+}
 static inline float clampf(float x, float lo, float hi)
-{ return x < lo ? lo : (x > hi ? hi : x); }
+{
+    return x < lo ? lo : (x > hi ? hi : x);
+}
 static inline int clampi(int x, int lo, int hi)
-{ return x < lo ? lo : (x > hi ? hi : x); }
+{
+    return x < lo ? lo : (x > hi ? hi : x);
+}
 
 /* This is the only fast-math path in the solver.  Separation dominated the
  * measured ESP32-S3 step time; two Newton refinements give an inverse square
@@ -64,7 +82,10 @@ static inline int clampi(int x, int lo, int hi)
  * changing the pair-correction equation or either required pass. */
 static inline float inverse_sqrt(float x)
 {
-    union { float f; uint32_t u; } value = {.f = x};
+    union {
+        float f;
+        uint32_t u;
+    } value = {.f = x};
     value.u = 0x5f375a86u - (value.u >> 1);
     float result = value.f;
     float half_x = 0.5f * x;
@@ -125,10 +146,11 @@ static stencil make_stencil(float x, float y)
     stencil s = {
         .x = {x0, x0 + 1, x0, x0 + 1},
         .y = {y0, y0, y0 + 1, y0 + 1},
-        .weight = {(1.0f - fx) * (1.0f - fy), fx * (1.0f - fy),
-                   (1.0f - fx) * fy, fx * fy},
+        .weight = {(1.0f - fx) * (1.0f - fy), fx * (1.0f - fy), (1.0f - fx) * fy, fx * fy},
     };
-    for (int i = 0; i < 4; ++i) s.index[i] = grid_index(s.x[i], s.y[i]);
+    for (int i = 0; i < 4; ++i) {
+        s.index[i] = grid_index(s.x[i], s.y[i]);
+    }
     return s;
 }
 
@@ -145,10 +167,20 @@ static void resolve_container(fluid_t *f)
      * into the tank.  Correct the position but discard only velocity into the wall. */
     for (int i = 0; i < PARTICLE_COUNT; ++i) {
         Particle *p = &f->particles[i];
-        if (p->x < MIN_X) { p->x = MIN_X; p->vx = maximum(p->vx, 0.0f); }
-        else if (p->x > MAX_X) { p->x = MAX_X; p->vx = minimum(p->vx, 0.0f); }
-        if (p->y < MIN_Y) { p->y = MIN_Y; p->vy = maximum(p->vy, 0.0f); }
-        else if (p->y > MAX_Y) { p->y = MAX_Y; p->vy = minimum(p->vy, 0.0f); }
+        if (p->x < MIN_X) {
+            p->x = MIN_X;
+            p->vx = maximum(p->vx, 0.0f);
+        } else if (p->x > MAX_X) {
+            p->x = MAX_X;
+            p->vx = minimum(p->vx, 0.0f);
+        }
+        if (p->y < MIN_Y) {
+            p->y = MIN_Y;
+            p->vy = maximum(p->vy, 0.0f);
+        } else if (p->y > MAX_Y) {
+            p->y = MAX_Y;
+            p->vy = minimum(p->vy, 0.0f);
+        }
     }
 }
 
@@ -165,8 +197,9 @@ static int hash_index(float x, float y)
 static void build_hash(fluid_t *f)
 {
     memset(f->bucket_count, 0, sizeof(f->bucket_count));
-    for (int i = 0; i < PARTICLE_COUNT; ++i)
+    for (int i = 0; i < PARTICLE_COUNT; ++i) {
         ++f->bucket_count[hash_index(f->particles[i].x, f->particles[i].y)];
+    }
 
     f->bucket_offset[0] = 0;
     for (int i = 0; i < HASH_BUCKETS; ++i) {
@@ -194,17 +227,21 @@ static void FLOW_HOT separate_particles(fluid_t *f)
             int max_y = hy + 1 < HASH_Y ? hy + 1 : HASH_Y - 1;
             int min_x = hx > 0 ? hx - 1 : 0;
             int max_x = hx + 1 < HASH_X ? hx + 1 : HASH_X - 1;
-            for (int y = min_y; y <= max_y; ++y)
+            for (int y = min_y; y <= max_y; ++y) {
                 for (int x = min_x; x <= max_x; ++x) {
                     int b = y * HASH_X + x;
                     for (uint16_t at = f->bucket_offset[b]; at < f->bucket_offset[b + 1]; ++at) {
                         int j = f->particle_indices[at];
-                        if (j <= i) continue;
+                        if (j <= i) {
+                            continue;
+                        }
                         Particle *other = &f->particles[j];
                         float dx = other->x - a->x;
                         float dy = other->y - a->y;
                         float d2 = dx * dx + dy * dy;
-                        if (d2 >= distance2_limit) continue;
+                        if (d2 >= distance2_limit) {
+                            continue;
+                        }
                         if (d2 < 1e-12f) {
                             /* A deterministic direction handles the only
                              * degenerate case without a random hot-path cost. */
@@ -221,6 +258,7 @@ static void FLOW_HOT separate_particles(fluid_t *f)
                         other->y += dy;
                     }
                 }
+            }
         }
     }
 }
@@ -228,12 +266,13 @@ static void FLOW_HOT separate_particles(fluid_t *f)
 static void classify_cells(fluid_t *f)
 {
     int active = 0;
-    for (int y = 0; y < GRID_Y; ++y)
+    for (int y = 0; y < GRID_Y; ++y) {
         for (int x = 0; x < GRID_X; ++x) {
             int c = grid_index(x, y);
             f->solid_mask[c] = x == 0 || y == 0 || x == GRID_X - 1 || y == GRID_Y - 1;
             f->cell_type[c] = f->solid_mask[c] ? CELL_SOLID : CELL_AIR;
         }
+    }
     for (int i = 0; i < PARTICLE_COUNT; ++i) {
         const Particle *p = &f->particles[i];
         int x = clampi((int)floorf(p->x), 1, GRID_X - 2);
@@ -241,7 +280,9 @@ static void classify_cells(fluid_t *f)
         f->cell_type[grid_index(x, y)] = CELL_FLUID;
     }
     for (int c = 0; c < GRID_CELLS; ++c) {
-        if (f->cell_type[c] != CELL_FLUID) continue;
+        if (f->cell_type[c] != CELL_FLUID) {
+            continue;
+        }
         /* A fluid cell is always interior, so these four compact neighbours
          * are in bounds.  Cache the mask for all 22 projection iterations. */
         uint8_t mask = (!f->solid_mask[c - 1]) | (!f->solid_mask[c + 1] << 1) |
@@ -290,7 +331,8 @@ static void extrapolate_separating_faces(fluid_t *f)
      * Extend the old grid by the same stencil to preserve the FLIP delta. */
     for (int y = 1; y < GRID_Y - 1; ++y) {
         int left = grid_index(1, y), right = grid_index(GRID_X - 2, y);
-        if (f->cell_type[left] == CELL_FLUID && f->pressure[left] == 0.0f && f->u[left + 1] > 0.0f) {
+        if (f->cell_type[left] == CELL_FLUID && f->pressure[left] == 0.0f &&
+            f->u[left + 1] > 0.0f) {
             f->u[left] = f->u[left + 1];
             f->previous_u[left] = f->previous_u[left + 1];
         }
@@ -301,11 +343,13 @@ static void extrapolate_separating_faces(fluid_t *f)
     }
     for (int x = 1; x < GRID_X - 1; ++x) {
         int top = grid_index(x, 1), bottom = grid_index(x, GRID_Y - 2);
-        if (f->cell_type[top] == CELL_FLUID && f->pressure[top] == 0.0f && f->v[top + GRID_X] > 0.0f) {
+        if (f->cell_type[top] == CELL_FLUID && f->pressure[top] == 0.0f &&
+            f->v[top + GRID_X] > 0.0f) {
             f->v[top] = f->v[top + GRID_X];
             f->previous_v[top] = f->previous_v[top + GRID_X];
         }
-        if (f->cell_type[bottom] == CELL_FLUID && f->pressure[bottom] == 0.0f && f->v[bottom] < 0.0f) {
+        if (f->cell_type[bottom] == CELL_FLUID && f->pressure[bottom] == 0.0f &&
+            f->v[bottom] < 0.0f) {
             f->v[bottom + GRID_X] = f->v[bottom];
             f->previous_v[bottom + GRID_X] = f->previous_v[bottom];
         }
@@ -322,16 +366,18 @@ static void scatter_velocity(fluid_t *f, bool vertical)
     memset(weight, 0, GRID_CELLS * sizeof(*weight));
     for (int i = 0; i < PARTICLE_COUNT; ++i) {
         const Particle *p = &f->particles[i];
-        stencil s = make_stencil(p->x - (vertical ? 0.5f : 0.0f),
-                                 p->y - (vertical ? 0.0f : 0.5f));
+        stencil s = make_stencil(p->x - (vertical ? 0.5f : 0.0f), p->y - (vertical ? 0.0f : 0.5f));
         float value = vertical ? p->vy : p->vx;
         for (int k = 0; k < 4; ++k) {
             velocity[s.index[k]] += value * s.weight[k];
             weight[s.index[k]] += s.weight[k];
         }
     }
-    for (int c = 0; c < GRID_CELLS; ++c)
-        if (weight[c] > 0.0f) velocity[c] /= weight[c];
+    for (int c = 0; c < GRID_CELLS; ++c) {
+        if (weight[c] > 0.0f) {
+            velocity[c] /= weight[c];
+        }
+    }
 }
 
 static void particle_to_grid(fluid_t *f)
@@ -349,13 +395,15 @@ static void calculate_density(fluid_t *f)
     for (int i = 0; i < PARTICLE_COUNT; ++i) {
         const Particle *p = &f->particles[i];
         stencil s = make_stencil(p->x - 0.5f, p->y - 0.5f);
-        for (int k = 0; k < 4; ++k)
+        for (int k = 0; k < 4; ++k) {
             f->particle_density[s.index[k]] += s.weight[k];
+        }
     }
     if (f->rest_density == 0.0f) {
         float total = 0.0f;
-        for (int i = 0; i < f->metrics.fluid_cells; ++i)
+        for (int i = 0; i < f->metrics.fluid_cells; ++i) {
             total += f->particle_density[f->active_cells[i]];
+        }
         f->rest_density = total / maximum(1, f->metrics.fluid_cells);
     }
 }
@@ -371,8 +419,9 @@ static float pressure_residual(const fluid_t *f, int c)
     float residual = divergence(f, c) - f->density_drift[c];
     /* A wall cell at zero pressure may lose liquid as its surface detaches.
      * Positive divergence there is allowed by the inequality constraint. */
-    if (f->fluid_neighbour_mask[c] != 15 && f->pressure[c] == 0.0f)
+    if (f->fluid_neighbour_mask[c] != 15 && f->pressure[c] == 0.0f) {
         return minimum(residual, 0.0f);
+    }
     return residual;
 }
 
@@ -396,11 +445,11 @@ static void FLOW_HOT project_pressure(fluid_t *f)
             int c = f->active_cells[i];
             uint8_t mask = f->fluid_neighbour_mask[c];
             static const float inverse_neighbours[16] = {
-                0.0f, 1.0f, 1.0f, 0.5f, 1.0f, 0.5f, 0.5f, 1.0f / 3.0f,
+                0.0f, 1.0f, 1.0f, 0.5f,        1.0f, 0.5f,        0.5f,        1.0f / 3.0f,
                 1.0f, 0.5f, 0.5f, 1.0f / 3.0f, 0.5f, 1.0f / 3.0f, 1.0f / 3.0f, 0.25f,
             };
             float correction = -PRESSURE_OVER_RELAXATION *
-                (divergence(f, c) - f->density_drift[c]) * inverse_neighbours[mask];
+                               (divergence(f, c) - f->density_drift[c]) * inverse_neighbours[mask];
             /* Projected Gauss-Seidel at solid-adjacent cells: the wall may
              * support a pool with positive pressure, but cannot pull it back
              * with negative pressure.  Interior fluid remains incompressible.
@@ -410,10 +459,18 @@ static void FLOW_HOT project_pressure(fluid_t *f)
                 correction = pressure - f->pressure[c];
                 f->pressure[c] = pressure;
             }
-            if (mask & 1) f->u[c] -= correction;
-            if (mask & 2) f->u[c + 1] += correction;
-            if (mask & 4) f->v[c] -= correction;
-            if (mask & 8) f->v[c + GRID_X] += correction;
+            if (mask & 1) {
+                f->u[c] -= correction;
+            }
+            if (mask & 2) {
+                f->u[c + 1] += correction;
+            }
+            if (mask & 4) {
+                f->v[c] -= correction;
+            }
+            if (mask & 8) {
+                f->v[c + GRID_X] += correction;
+            }
         }
     }
     enforce_grid_boundaries(f);
@@ -429,10 +486,14 @@ static void FLOW_HOT project_pressure(fluid_t *f)
 }
 
 static bool valid_u_face(const fluid_t *f, int x, int y)
-{ return cell_supports_velocity(f, x - 1, y) || cell_supports_velocity(f, x, y); }
+{
+    return cell_supports_velocity(f, x - 1, y) || cell_supports_velocity(f, x, y);
+}
 
 static bool valid_v_face(const fluid_t *f, int x, int y)
-{ return cell_supports_velocity(f, x, y - 1) || cell_supports_velocity(f, x, y); }
+{
+    return cell_supports_velocity(f, x, y - 1) || cell_supports_velocity(f, x, y);
+}
 
 static void FLOW_HOT grid_to_particles(fluid_t *f, float target_vx, float target_vy)
 {
@@ -443,28 +504,35 @@ static void FLOW_HOT grid_to_particles(fluid_t *f, float target_vx, float target
         const float *previous = vertical ? f->previous_v : f->previous_u;
         for (int i = 0; i < PARTICLE_COUNT; ++i) {
             Particle *p = &f->particles[i];
-            stencil s = make_stencil(p->x - (vertical ? 0.5f : 0.0f),
-                                     p->y - (vertical ? 0.0f : 0.5f));
+            stencil s =
+                make_stencil(p->x - (vertical ? 0.5f : 0.0f), p->y - (vertical ? 0.0f : 0.5f));
             float pic = 0.0f;
             float flip_delta = 0.0f;
             float sum = 0.0f;
             for (int k = 0; k < 4; ++k) {
-                bool valid = vertical ? valid_v_face(f, s.x[k], s.y[k]) :
-                                        valid_u_face(f, s.x[k], s.y[k]);
-                if (!valid) continue;
+                bool valid =
+                    vertical ? valid_v_face(f, s.x[k], s.y[k]) : valid_u_face(f, s.x[k], s.y[k]);
+                if (!valid) {
+                    continue;
+                }
                 pic += grid[s.index[k]] * s.weight[k];
                 flip_delta += (grid[s.index[k]] - previous[s.index[k]]) * s.weight[k];
                 sum += s.weight[k];
             }
-            if (sum == 0.0f) continue;
+            if (sum == 0.0f) {
+                continue;
+            }
             float inverse_weight = 1.0f / sum;
             pic *= inverse_weight;
             flip_delta *= inverse_weight;
             float old_particle_velocity = vertical ? p->vy : p->vx;
             float flip = old_particle_velocity + flip_delta;
             float updated = FLIP_RATIO * flip + (1.0f - FLIP_RATIO) * pic;
-            if (vertical) p->vy = updated;
-            else p->vx = updated;
+            if (vertical) {
+                p->vy = updated;
+            } else {
+                p->vx = updated;
+            }
         }
     }
     float mean_vx = 0.0f, mean_vy = 0.0f;
@@ -475,33 +543,37 @@ static void FLOW_HOT grid_to_particles(fluid_t *f, float target_vx, float target
     mean_vx /= PARTICLE_COUNT;
     mean_vy /= PARTICLE_COUNT;
     float middle_x = 0.5f * (MIN_X + MAX_X);
-    float blend_x = clampf((fabsf(target_vx) - TRANSLATION_TARGET_DEADZONE) /
-                           TRANSLATION_TARGET_BLEND_RANGE, 0.0f, 1.0f);
-    float blend_y = clampf((fabsf(target_vy) - TRANSLATION_TARGET_DEADZONE) /
-                           TRANSLATION_TARGET_BLEND_RANGE, 0.0f, 1.0f);
+    float blend_x =
+        clampf((fabsf(target_vx) - TRANSLATION_TARGET_DEADZONE) / TRANSLATION_TARGET_BLEND_RANGE,
+               0.0f, 1.0f);
+    float blend_y =
+        clampf((fabsf(target_vy) - TRANSLATION_TARGET_DEADZONE) / TRANSLATION_TARGET_BLEND_RANGE,
+               0.0f, 1.0f);
     /* A brief strong shift must pull fluid away from a wall in the next few
      * steps.  Preserve the gentler correction for ordinary hand slides. */
     float strong_x = clampf((fabsf(target_vx) - STRONG_TRANSLATION_TARGET_START) /
-                            (STRONG_TRANSLATION_TARGET_FULL - STRONG_TRANSLATION_TARGET_START), 0.0f, 1.0f);
-    float limit_x = TRANSLATION_CORRECTION_LIMIT +
-                    (STRONG_TRANSLATION_CORRECTION_LIMIT - TRANSLATION_CORRECTION_LIMIT) * strong_x +
-                    (VERY_STRONG_TRANSLATION_CORRECTION_LIMIT - STRONG_TRANSLATION_CORRECTION_LIMIT) *
-                    clampf((fabsf(target_vx) - STRONG_TRANSLATION_TARGET_FULL) /
-                           (VERY_STRONG_TRANSLATION_TARGET_FULL - STRONG_TRANSLATION_TARGET_FULL),
-                           0.0f, 1.0f);
+                                (STRONG_TRANSLATION_TARGET_FULL - STRONG_TRANSLATION_TARGET_START),
+                            0.0f, 1.0f);
+    float limit_x =
+        TRANSLATION_CORRECTION_LIMIT +
+        (STRONG_TRANSLATION_CORRECTION_LIMIT - TRANSLATION_CORRECTION_LIMIT) * strong_x +
+        (VERY_STRONG_TRANSLATION_CORRECTION_LIMIT - STRONG_TRANSLATION_CORRECTION_LIMIT) *
+            clampf((fabsf(target_vx) - STRONG_TRANSLATION_TARGET_FULL) /
+                       (VERY_STRONG_TRANSLATION_TARGET_FULL - STRONG_TRANSLATION_TARGET_FULL),
+                   0.0f, 1.0f);
     float correction_x = clampf((target_vx - mean_vx) * blend_x, -limit_x, limit_x);
-    float correction_y = clampf((target_vy - mean_vy) * blend_y,
-                                 -TRANSLATION_CORRECTION_LIMIT, TRANSLATION_CORRECTION_LIMIT);
+    float correction_y = clampf((target_vy - mean_vy) * blend_y, -TRANSLATION_CORRECTION_LIMIT,
+                                TRANSLATION_CORRECTION_LIMIT);
     float upright = clampf((f->acceleration_y / GRAVITY - 0.65f) / 0.25f, 0.0f, 1.0f);
     float surface_top = MAX_Y - (MAX_Y - MIN_Y) * FILL_RATIO;
     float inverse_half_width = 2.0f / (MAX_X - MIN_X);
     for (int i = 0; i < PARTICLE_COUNT; ++i) {
         Particle *p = &f->particles[i];
-        float surface = clampf((surface_top + VERTICAL_SURFACE_DEPTH - p->y) /
-                               VERTICAL_SURFACE_DEPTH, 0.0f, 1.0f);
+        float surface = clampf(
+            (surface_top + VERTICAL_SURFACE_DEPTH - p->y) / VERTICAL_SURFACE_DEPTH, 0.0f, 1.0f);
         float spread = clampf((p->x - middle_x) * inverse_half_width, -1.0f, 1.0f);
-        float surface_push = -target_vy * VERTICAL_SURFACE_RESPONSE *
-                             upright * surface * spread * blend_y;
+        float surface_push =
+            -target_vy * VERTICAL_SURFACE_RESPONSE * upright * surface * spread * blend_y;
         p->vx = (p->vx + correction_x + surface_push) * VELOCITY_DAMPING;
         p->vy = (p->vy + correction_y) * VELOCITY_DAMPING;
     }
@@ -509,13 +581,20 @@ static void FLOW_HOT grid_to_particles(fluid_t *f, float target_vx, float target
 
 static bool state_is_valid(const fluid_t *f)
 {
-    if (!isfinite(f->rest_density) || f->rest_density < 0.0f) return false;
+    if (!isfinite(f->rest_density) || f->rest_density < 0.0f) {
+        return false;
+    }
     for (int i = 0; i < PARTICLE_COUNT; ++i) {
         const Particle *p = &f->particles[i];
-        if (!isfinite(p->x) || !isfinite(p->y) || !isfinite(p->vx) || !isfinite(p->vy)) return false;
+        if (!isfinite(p->x) || !isfinite(p->y) || !isfinite(p->vx) || !isfinite(p->vy)) {
+            return false;
+        }
     }
-    for (int i = 0; i < GRID_CELLS; ++i)
-        if (!isfinite(f->u[i]) || !isfinite(f->v[i])) return false;
+    for (int i = 0; i < GRID_CELLS; ++i) {
+        if (!isfinite(f->u[i]) || !isfinite(f->v[i])) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -529,7 +608,9 @@ static bool recover(fluid_t *f)
 fluid_t *fluid_create(void)
 {
     fluid_t *f = allocate(sizeof(*f));
-    if (!f) return NULL;
+    if (!f) {
+        return NULL;
+    }
     fluid_reset(f);
     return f;
 }
@@ -568,15 +649,21 @@ void fluid_reset(fluid_t *f)
     int seeded = 0;
     for (int row = 0; row < rows_needed; ++row) {
         float y = MAX_Y - row * row_spacing;
-        if (y < fluid_top) break;
+        if (y < fluid_top) {
+            break;
+        }
         float offset = (row & 1) ? spacing * 0.5f : 0.0f;
         /* Spread the seven unavoidable holes over different rows rather than
          * making the last seeded row visibly shorter. */
         int omitted_column = row < omitted_positions ? (row * 17) % columns : -1;
         for (int column = 0; column < columns && seeded < PARTICLE_COUNT; ++column) {
-            if (column == omitted_column) continue;
+            if (column == omitted_column) {
+                continue;
+            }
             float x = MIN_X + column * spacing + offset;
-            if (x > MAX_X) continue;
+            if (x > MAX_X) {
+                continue;
+            }
             Particle *p = &f->particles[seeded++];
             p->x = clampf(x + random_jitter(&random), MIN_X, MAX_X);
             p->y = clampf(y + random_jitter(&random), MIN_Y, MAX_Y);
@@ -594,11 +681,13 @@ void fluid_reset(fluid_t *f)
 }
 
 bool FLOW_HOT fluid_step_with_translation(fluid_t *f, float acceleration_x, float acceleration_y,
-                                           float target_vx, float target_vy)
+                                          float target_vx, float target_vy)
 {
     uint32_t step_start = now_us();
-    if (!isfinite(acceleration_x) || !isfinite(acceleration_y) ||
-        !isfinite(target_vx) || !isfinite(target_vy) || !state_is_valid(f)) return recover(f);
+    if (!isfinite(acceleration_x) || !isfinite(acceleration_y) || !isfinite(target_vx) ||
+        !isfinite(target_vy) || !state_is_valid(f)) {
+        return recover(f);
+    }
     f->acceleration_x = acceleration_x;
     f->acceleration_y = acceleration_y;
 
@@ -640,7 +729,9 @@ bool FLOW_HOT fluid_step_with_translation(fluid_t *f, float acceleration_x, floa
     grid_to_particles(f, target_vx, target_vy);
     f->metrics.g2p_us = now_us() - started;
 
-    if (!state_is_valid(f)) return recover(f);
+    if (!state_is_valid(f)) {
+        return recover(f);
+    }
     float speed_total = 0.0f;
     float speed_max = 0.0f;
     float mean_x = 0.0f, mean_y = 0.0f, mean_vx = 0.0f, mean_vy = 0.0f;
@@ -654,7 +745,9 @@ bool FLOW_HOT fluid_step_with_translation(fluid_t *f, float acceleration_x, floa
         mean_y += p->y;
         mean_vx += p->vx;
         mean_vy += p->vy;
-        if (p->y < MIN_Y + 1.0f) ++ceiling;
+        if (p->y < MIN_Y + 1.0f) {
+            ++ceiling;
+        }
     }
     f->metrics.average_speed = speed_total / PARTICLE_COUNT;
     f->metrics.maximum_speed = speed_max;
@@ -694,13 +787,14 @@ void fluid_publish(const fluid_t *f, fluid_snapshot *out)
         float fy = clampf(sy - y0, 0.0f, 1.0f);
         int cells[4] = {y0 * PIXEL_GRID_X + x0, y0 * PIXEL_GRID_X + x0 + 1,
                         (y0 + 1) * PIXEL_GRID_X + x0, (y0 + 1) * PIXEL_GRID_X + x0 + 1};
-        float weights[4] = {(1.0f - fx) * (1.0f - fy), fx * (1.0f - fy),
-                            (1.0f - fx) * fy, fx * fy};
-        uint8_t speed = (uint8_t)lroundf(clampf(sqrtf(p->vx * p->vx + p->vy * p->vy) / 8.0f,
-                                                0.0f, 1.0f) * 255.0f);
+        float weights[4] = {(1.0f - fx) * (1.0f - fy), fx * (1.0f - fy), (1.0f - fx) * fy, fx * fy};
+        uint8_t speed = (uint8_t)lroundf(
+            clampf(sqrtf(p->vx * p->vx + p->vy * p->vy) / 8.0f, 0.0f, 1.0f) * 255.0f);
         for (int k = 0; k < 4; ++k) {
             out->density[cells[k]] += weights[k];
-            if (speed > out->speed[cells[k]]) out->speed[cells[k]] = speed;
+            if (speed > out->speed[cells[k]]) {
+                out->speed[cells[k]] = speed;
+            }
         }
     }
     float mass = 0.0f;

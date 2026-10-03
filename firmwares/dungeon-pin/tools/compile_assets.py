@@ -1,53 +1,178 @@
 #!/usr/bin/env python3
-"""Validate and compile DUNGEON//SEED source sheets into 4-bit C sprites."""
+"""Validate and pack editable 64px atlases into allocation-free indexed sprites."""
+
 from pathlib import Path
 import hashlib
 from PIL import Image
+from art_palette import CELL, PALETTE
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "assets" / "source"
 OUT_C, OUT_H = ROOT / "main" / "assets_generated.c", ROOT / "main" / "assets_generated.h"
-PALETTE = [(0,0,0,0),(9,11,14,255),(25,30,37,255),(48,57,67,255),(77,89,101,255),(111,124,136,255),(169,180,188,255),(246,165,63,255),(255,211,106,255),(181,74,71,255),(98,80,139,255),(71,93,156,255),(63,200,154,255),(238,241,239,255),(94,113,75,255),(39,45,53,255)]
-
-# name, sheet, cell column, cell row; all assets are 32x32 logical pixels
-ENTRIES = [
-    *( (f"WALL_{name}", "tiles-and-props.png", col, 0) for name,col in (("NEAR",0),("MID",1),("FAR",2)) ),
-    *( (f"CEILING_{name}", "tiles-and-props.png", col, 0) for name,col in (("NEAR",3),("MID",4),("FAR",5)) ),
-    ("FLOOR_NEAR","tiles-and-props.png",6,0),("FLOOR_MID","tiles-and-props.png",7,0),("FLOOR_FAR","tiles-and-props.png",0,1),
-    ("ARCH","tiles-and-props.png",1,1),("DOOR","tiles-and-props.png",2,1),
-    ("TORCH","tiles-and-props.png",3,1),("BANNER","tiles-and-props.png",4,1),("CHAIN","tiles-and-props.png",5,1),("SKULLS","tiles-and-props.png",6,1),("RUBBLE","tiles-and-props.png",7,1),("ROOTS","tiles-and-props.png",1,2),("CHEST","tiles-and-props.png",2,2),("SHRINE","tiles-and-props.png",3,2),("GATE","tiles-and-props.png",4,2),
-    *( (f"{kind}_{frame}", "actors.png", frame, row) for row,kind in enumerate(("SKELETON","SLIME","BRUTE","EYE")) for frame in range(4) ),
-    *( (f"{kind}_{frame}", "bosses-and-effects.png", (row*4+frame)%5, (row*4+frame)//5) for row,kind in enumerate(("WARDEN","WYRM","ELDRITCH")) for frame in range(4) ),
-    *((name,"bosses-and-effects.png",slot%5,slot//5) for slot,name in enumerate(("SWORD","STAFF","HANDS","SLASH","BOLT","IMPACT","BURST","TITLE"),start=12)),
+PROPS = (
+    "WALL_NEAR",
+    "WALL_MID",
+    "WALL_FAR",
+    "CEILING_NEAR",
+    "CEILING_MID",
+    "CEILING_FAR",
+    "FLOOR_NEAR",
+    "FLOOR_MID",
+    "FLOOR_FAR",
+    "ARCH",
+    "DOOR",
+    "TORCH",
+    "BANNER",
+    "CHAIN",
+    "SKULLS",
+    "RUBBLE",
+    "ROOTS",
+    "CHEST",
+    "SHRINE",
+    "GATE",
+    "CHEST_OPEN",
+    "COLUMN",
+    "BRAZIER",
+    "TITLE",
+)
+GEAR = (
+    "SWORD",
+    "SWORD_SWING",
+    "STAFF",
+    "STAFF_CAST",
+    "HANDS",
+    "SLASH",
+    "BOLT",
+    "IMPACT",
+    "BURST",
+    "RUNE",
+    "FIRE",
+    "CLAW",
+)
+ENTRIES = [(name, "tiles-and-props.png", i % 8, i // 8) for i, name in enumerate(PROPS)]
+ENTRIES += [
+    (f"{kind}_{frame}", "actors.png", frame, row)
+    for row, kind in enumerate(("SKELETON", "SLIME", "BRUTE", "EYE"))
+    for frame in range(4)
 ]
+ENTRIES += [
+    (f"{kind}_{frame}", "actors-extra.png", frame, row)
+    for row, kind in enumerate(("GOBLIN", "SPIDER", "WRAITH", "GOLEM"))
+    for frame in range(4)
+]
+ENTRIES += [
+    (f"{kind}_{frame}", "bosses.png", frame, row)
+    for row, kind in enumerate(("WARDEN", "WYRM", "ELDRITCH"))
+    for frame in range(4)
+]
+ENTRIES += [
+    (f"{kind}_{frame}", "bosses-extra.png", frame, row)
+    for row, kind in enumerate(("LICH", "HYDRA", "MINOTAUR"))
+    for frame in range(4)
+]
+ENTRIES += [(name, "gear-right.png", i % 2, i // 2) for i, name in enumerate(GEAR[:4])]
+ENTRIES += [(name, "weapons-and-effects.png", i % 4, i // 4) for i, name in enumerate(GEAR[4:])]
+EXTRA_GEAR = (
+    "AXE",
+    "AXE_SWING",
+    "MACE",
+    "MACE_SWING",
+    "DAGGER",
+    "DAGGER_SWING",
+    "CROSSBOW",
+    "CROSSBOW_FIRE",
+)
+ENTRIES += [
+    (name, "axe-right.png" if i < 2 else "gear-extra-right.png", i % 2, 0 if i < 2 else i // 2)
+    for i, name in enumerate(EXTRA_GEAR)
+]
+BIOME_PROPS = (
+    "MOSS_WALL",
+    "MOSS_FLOOR",
+    "EMBER_WALL",
+    "EMBER_FLOOR",
+    "FROST_WALL",
+    "FROST_FLOOR",
+    "COFFIN",
+    "BOOKS",
+    "RACK",
+    "MUSHROOMS",
+    "CRYSTALS",
+    "STAIRS",
+    "PORTAL",
+    "VINES",
+    "HP_POTION",
+    "MP_POTION",
+)
+ENTRIES += [(name, "biomes-and-props.png", i % 4, i // 4) for i, name in enumerate(BIOME_PROPS)]
+
 
 def nearest(rgba):
-    if rgba[3] < 128: return 0
-    distance = [sum((rgba[k]-p[k])**2 for k in range(3)) for p in PALETTE]
-    return min(range(1,16), key=lambda n: distance[n])
+    if rgba[3] < 128:
+        return 0
+    return min(
+        range(1, len(PALETTE)), key=lambda n: sum((rgba[k] - PALETTE[n][k]) ** 2 for k in range(3))
+    )
+
 
 def compile():
-    sheets = {n:Image.open(SOURCE/n).convert("RGBA") for _,n,_,_ in ENTRIES}
-    values=[]
-    for name,sh,c,r in ENTRIES:
-        image=sheets[sh]
-        if image.width < (c+1)*32 or image.height < (r+1)*32: raise ValueError(f"{name}: outside {sh}")
-        indices=[nearest(image.getpixel((c*32+x,r*32+y))) for y in range(32) for x in range(32)]
-        if not any(indices): raise ValueError(f"{name}: fully transparent")
-        values.append((name,indices))
-    h = ['#pragma once', '#include <stdint.h>', '', 'typedef struct { uint8_t width, height; const uint8_t *pixels; } dungeon_sprite_t;', 'enum dungeon_sprite_id {']
-    h += [f'    DSP_{name},' for name,_ in values] + ['    DSP_COUNT', '};', 'extern const uint16_t dungeon_palette[16];', 'extern const dungeon_sprite_t dungeon_sprites[DSP_COUNT];', '']
-    c=['#include "assets_generated.h"','', 'const uint16_t dungeon_palette[16] = {']
-    c += [f'    0x{((r&0xf8)<<8)|((g&0xfc)<<3)|(b>>3):04x},' for r,g,b,a in PALETTE] + ['};','']
-    for name,indices in values:
-        packed=[]
-        for i in range(0,len(indices),2): packed.append((indices[i]<<4)|indices[i+1])
-        c.append(f'static const uint8_t pixels_{name.lower()}[] = {{')
-        c += ['    '+', '.join(f'0x{x:02x}' for x in packed[i:i+16])+',' for i in range(0,len(packed),16)] + ['};']
-    c += ['', 'const dungeon_sprite_t dungeon_sprites[DSP_COUNT] = {']
-    c += [f'    [DSP_{name}] = {{32, 32, pixels_{name.lower()}}},' for name,_ in values] + ['};','']
-    OUT_H.write_text('\n'.join(h)); OUT_C.write_text('\n'.join(c))
-    digest=hashlib.sha256(OUT_C.read_bytes()).hexdigest()
-    print(f"compiled {len(values)} sprites / {len(values)*512} bytes, sha256 {digest}")
+    sheets = {n: Image.open(SOURCE / n).convert("RGBA") for _, n, _, _ in ENTRIES}
+    lookup = {color: i for i, color in enumerate(PALETTE)}
+    values = []
+    for name, sh, col, row in ENTRIES:
+        image = sheets[sh]
+        if image.width < (col + 1) * CELL or image.height < (row + 1) * CELL:
+            raise ValueError(f"{name}: outside {sh}")
+        tile = image.crop((col * CELL, row * CELL, (col + 1) * CELL, (row + 1) * CELL))
+        pixels = (
+            tile.get_flattened_data() if hasattr(tile, "get_flattened_data") else tile.getdata()
+        )
+        indices = [lookup[p] for p in pixels]
+        if not any(indices):
+            raise ValueError(f"{name}: fully transparent")
+        values.append((name, indices))
+    h = [
+        "/* SPDX-License-Identifier: GPL-3.0-only */",
+        "#pragma once",
+        "#include <stdint.h>",
+        "",
+        f"enum {{ DUNGEON_PALETTE_SIZE = {len(PALETTE)} }};",
+        "typedef struct { uint8_t width, height; const uint8_t *pixels; } dungeon_sprite_t;",
+        "enum dungeon_sprite_id {",
+    ]
+    h += [f"    DSP_{name}," for name, _ in values] + [
+        "    DSP_COUNT",
+        "};",
+        "extern const uint16_t dungeon_palette[DUNGEON_PALETTE_SIZE];",
+        "extern const dungeon_sprite_t dungeon_sprites[DSP_COUNT];",
+        "",
+    ]
+    c = [
+        "/* SPDX-License-Identifier: GPL-3.0-only */\n/* Generated by tools/compile_assets.py; edit assets/source instead. */",
+        '#include "assets_generated.h"',
+        "",
+        "const uint16_t dungeon_palette[DUNGEON_PALETTE_SIZE] = {",
+    ]
+    c += [
+        f"    0x{((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3):04x}," for r, g, b, _ in PALETTE
+    ] + ["};", ""]
+    for name, indices in values:
+        c.append(f"static const uint8_t pixels_{name.lower()}[] = {{")
+        c += [
+            "    " + ", ".join(str(x) for x in indices[i : i + 32]) + ","
+            for i in range(0, len(indices), 32)
+        ] + ["};"]
+    c += ["", "const dungeon_sprite_t dungeon_sprites[DSP_COUNT] = {"]
+    c += [
+        f"    [DSP_{name}] = {{{CELL}, {CELL}, pixels_{name.lower()}}}," for name, _ in values
+    ] + ["};", ""]
+    OUT_H.write_text("\n".join(h))
+    OUT_C.write_text("\n".join(c))
+    print(
+        f"compiled {len(values)} sprites / {len(values) * CELL * CELL} bytes, "
+        f"sha256 {hashlib.sha256(OUT_C.read_bytes()).hexdigest()}"
+    )
 
-if __name__ == '__main__': compile()
+
+if __name__ == "__main__":
+    compile()

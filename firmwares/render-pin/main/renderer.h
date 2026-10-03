@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <stdint.h>
 
@@ -25,8 +26,7 @@ typedef struct {
 
 void renderer_init(void);
 /* View X/Y are normalized tilt; roll uses 1/1024 turns; energy is 0..1. */
-void renderer_prepare(renderer_t *state, int32_t time_ms, float view_x,
-                      float view_y, float roll, float energy, uint8_t mood,
-                      int pulse_x, int pulse_y, int32_t pulse_age_ms);
+void renderer_prepare(renderer_t *state, int32_t time_ms, float view_x, float view_y, float roll,
+                      float energy, uint8_t mood, int pulse_x, int pulse_y, int32_t pulse_age_ms);
 /* Output is RGB565 with bytes swapped for SH8601 QSPI DMA. */
 void renderer_strip(const renderer_t *state, int y0, int rows, uint16_t *pixels);

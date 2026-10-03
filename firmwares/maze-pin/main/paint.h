@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include "maze.h"
 void maze_paint(const maze_t *m, uint16_t pixels[MAZE_W * MAZE_H]);

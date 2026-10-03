@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 
 #include <stdbool.h>
@@ -34,10 +35,10 @@ typedef struct {
     float gravity[3];
     float linear_device_acceleration[3];
     float fluid_acceleration[3];
-    float force[2]; /* gravity plus opposite device acceleration, m/s^2 */
+    float force[2];              /* gravity plus opposite device acceleration, m/s^2 */
     float translation_target[2]; /* bounded enclosure-relative flow target, m/s;
                                    x also includes a brief roll response */
-    float translation_scale[2]; /* simulation cells / physical m, based on pose and axis */
+    float translation_scale[2];  /* simulation cells / physical m, based on pose and axis */
 } motion_output;
 
 /* accel is m/s^2 specific force, gyro is rad/s.  gravity_map converts raw

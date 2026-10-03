@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -96,8 +97,8 @@ static const sh8601_lcd_init_cmd_t panel_init[] = {
     {0x51, (uint8_t[]){0xB0}, 1, 0},
 };
 
-static bool transfer_finished(esp_lcd_panel_io_handle_t io,
-                              esp_lcd_panel_io_event_data_t *event, void *context)
+static bool transfer_finished(esp_lcd_panel_io_handle_t io, esp_lcd_panel_io_event_data_t *event,
+                              void *context)
 {
     BaseType_t wake = pdFALSE;
     xSemaphoreGiveFromISR((SemaphoreHandle_t)context, &wake);
@@ -110,16 +111,14 @@ static esp_lcd_panel_handle_t open_display(void)
     ESP_ERROR_CHECK(display_done ? ESP_OK : ESP_ERR_NO_MEM);
 
     const spi_bus_config_t bus = SH8601_PANEL_BUS_QSPI_CONFIG(
-        LCD_CLK, LCD_D0, LCD_D1, LCD_D2, LCD_D3,
-        LCD_WIDTH * STRIP_HEIGHT * sizeof(uint16_t) + 64);
+        LCD_CLK, LCD_D0, LCD_D1, LCD_D2, LCD_D3, LCD_WIDTH * STRIP_HEIGHT * sizeof(uint16_t) + 64);
     ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &bus, SPI_DMA_CH_AUTO));
 
     esp_lcd_panel_io_handle_t io = NULL;
-    esp_lcd_panel_io_spi_config_t io_config = SH8601_PANEL_IO_QSPI_CONFIG(
-        LCD_CS, transfer_finished, display_done);
+    esp_lcd_panel_io_spi_config_t io_config =
+        SH8601_PANEL_IO_QSPI_CONFIG(LCD_CS, transfer_finished, display_done);
     io_config.trans_queue_depth = 1;
-    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST,
-                                              &io_config, &io));
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)LCD_HOST, &io_config, &io));
 
     sh8601_vendor_config_t vendor = {
         .init_cmds = panel_init,
@@ -143,7 +142,7 @@ static esp_lcd_panel_handle_t open_display(void)
 static touch_event_t map_touch(uint16_t raw_x, uint16_t raw_y)
 {
     const touch_cell_t cell = touch_cell_from_raw(raw_x, raw_y);
-    return (touch_event_t) {
+    return (touch_event_t){
         .raw_x = raw_x,
         .raw_y = raw_y,
         .cell_x = cell.x,
@@ -164,9 +163,9 @@ static esp_err_t ft3168_read_touch(touch_event_t *event, touch_report_t *touch_r
     const int touch_event = report[1] >> 6;
     // The touch count is authoritative; some reports have no event flag even
     // while a finger is down.
-    *touch_report = !touches || touch_event == 1 ? TOUCH_REPORT_UP :
-                    touch_event == 0 ? TOUCH_REPORT_DOWN :
-                    TOUCH_REPORT_CONTACT;
+    *touch_report = !touches || touch_event == 1 ? TOUCH_REPORT_UP
+                    : touch_event == 0           ? TOUCH_REPORT_DOWN
+                                                 : TOUCH_REPORT_CONTACT;
     if (*touch_report == TOUCH_REPORT_UP) {
         return ESP_OK;
     }
@@ -201,8 +200,7 @@ static void touch_task(void *context)
         touch_report_t report;
         const esp_err_t result = ft3168_read_touch(&event, &report);
         if (result != ESP_OK) {
-            ESP_LOGW(TAG, "FT3168 interrupt, but report read failed: %s",
-                     esp_err_to_name(result));
+            ESP_LOGW(TAG, "FT3168 interrupt, but report read failed: %s", esp_err_to_name(result));
             continue;
         }
         if (report == TOUCH_REPORT_UP) {
@@ -212,8 +210,8 @@ static void touch_task(void *context)
         const int64_t now = esp_timer_get_time();
         // A long gap before a new DOWN also recovers a missed lift report.
         // Repeated reports from a moving or held finger remain one stamp.
-        if (!was_down || (report == TOUCH_REPORT_DOWN &&
-                          now - last_report_us > TOUCH_NEW_PRESS_GAP_US)) {
+        if (!was_down ||
+            (report == TOUCH_REPORT_DOWN && now - last_report_us > TOUCH_NEW_PRESS_GAP_US)) {
             xQueueSend(touch_events, &event, 0);
         }
         was_down = true;
@@ -255,26 +253,22 @@ static void open_touch(void)
     }
     touch_events = xQueueCreate(4, sizeof(touch_event_t));
     ESP_ERROR_CHECK(touch_events ? ESP_OK : ESP_ERR_NO_MEM);
-    ESP_ERROR_CHECK(xTaskCreate(touch_task, "ft3168_touch", 3072, NULL, 5,
-                                &touch_task_handle) == pdPASS
-                        ? ESP_OK : ESP_ERR_NO_MEM);
+    ESP_ERROR_CHECK(xTaskCreate(touch_task, "ft3168_touch", 3072, NULL, 5, &touch_task_handle) ==
+                            pdPASS
+                        ? ESP_OK
+                        : ESP_ERR_NO_MEM);
     ESP_ERROR_CHECK(gpio_install_isr_service(0));
     ESP_ERROR_CHECK(gpio_isr_handler_add(TOUCH_INT, touch_interrupt, NULL));
-    ESP_LOGI(TAG, "FT3168 touch ready on I2C GPIO%d/%d, interrupt GPIO%d",
-             TOUCH_SDA, TOUCH_SCL, TOUCH_INT);
+    ESP_LOGI(TAG, "FT3168 touch ready on I2C GPIO%d/%d, interrupt GPIO%d", TOUCH_SDA, TOUCH_SCL,
+             TOUCH_INT);
 }
 
 static const uint8_t counter_digits[10][7] = {
-    {0x0e, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0e},
-    {0x04, 0x0c, 0x04, 0x04, 0x04, 0x04, 0x0e},
-    {0x0e, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1f},
-    {0x1e, 0x01, 0x01, 0x0e, 0x01, 0x01, 0x1e},
-    {0x02, 0x06, 0x0a, 0x12, 0x1f, 0x02, 0x02},
-    {0x1f, 0x10, 0x1e, 0x01, 0x01, 0x11, 0x0e},
-    {0x06, 0x08, 0x10, 0x1e, 0x11, 0x11, 0x0e},
-    {0x1f, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08},
-    {0x0e, 0x11, 0x11, 0x0e, 0x11, 0x11, 0x0e},
-    {0x0e, 0x11, 0x11, 0x0f, 0x01, 0x02, 0x1c},
+    {0x0e, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0e}, {0x04, 0x0c, 0x04, 0x04, 0x04, 0x04, 0x0e},
+    {0x0e, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1f}, {0x1e, 0x01, 0x01, 0x0e, 0x01, 0x01, 0x1e},
+    {0x02, 0x06, 0x0a, 0x12, 0x1f, 0x02, 0x02}, {0x1f, 0x10, 0x1e, 0x01, 0x01, 0x11, 0x0e},
+    {0x06, 0x08, 0x10, 0x1e, 0x11, 0x11, 0x0e}, {0x1f, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08},
+    {0x0e, 0x11, 0x11, 0x0e, 0x11, 0x11, 0x0e}, {0x0e, 0x11, 0x11, 0x0f, 0x01, 0x02, 0x1c},
 };
 
 static const uint8_t *counter_glyph(char character)
@@ -330,8 +324,8 @@ static void draw_generation_counter(uint16_t *pixels, uint32_t generation)
     }
 }
 
-static int show_frame(esp_lcd_panel_handle_t panel, const life_t *life,
-                      uint16_t *pixels, bool force_full_refresh)
+static int show_frame(esp_lcd_panel_handle_t panel, const life_t *life, uint16_t *pixels,
+                      bool force_full_refresh)
 {
     int sent = 0;
     for (int y0 = 0; y0 < LCD_HEIGHT; y0 += STRIP_HEIGHT) {
@@ -353,16 +347,15 @@ static int show_frame(esp_lcd_panel_handle_t panel, const life_t *life,
         for (int cell_row = 0; cell_row < STRIP_HEIGHT / LIFE_CELL_PIXELS; ++cell_row) {
             const int gy = y0 / LIFE_CELL_PIXELS + cell_row;
             for (int pixel_row = 0; pixel_row < LIFE_CELL_PIXELS; ++pixel_row) {
-                uint16_t *row = pixels +
-                    (cell_row * LIFE_CELL_PIXELS + pixel_row) * LCD_WIDTH;
+                uint16_t *row = pixels + (cell_row * LIFE_CELL_PIXELS + pixel_row) * LCD_WIDTH;
                 row[0] = 0;
                 row[LCD_WIDTH - 1] = 0;
                 for (int x = 0; x < LIFE_WIDTH; ++x) {
                     uint8_t state = life->current[gy * LIFE_WIDTH + x];
                     for (int pixel = 0; pixel < LIFE_CELL_PIXELS; ++pixel) {
                         // ESP-IDF panel IO sends byte order as stored in RAM.
-                        row[LIFE_OFFSET_X + LIFE_CELL_PIXELS * x + pixel] = __builtin_bswap16(
-                            palette[state][pixel_row * LIFE_CELL_PIXELS + pixel]);
+                        row[LIFE_OFFSET_X + LIFE_CELL_PIXELS * x + pixel] =
+                            __builtin_bswap16(palette[state][pixel_row * LIFE_CELL_PIXELS + pixel]);
                     }
                 }
             }
@@ -370,9 +363,8 @@ static int show_frame(esp_lcd_panel_handle_t panel, const life_t *life,
         if (y0 == 0) {
             draw_generation_counter(pixels, life->generation);
         }
-        ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel, 0, y0,
-                                                  LCD_WIDTH, y0 + STRIP_HEIGHT,
-                                                  pixels));
+        ESP_ERROR_CHECK(
+            esp_lcd_panel_draw_bitmap(panel, 0, y0, LCD_WIDTH, y0 + STRIP_HEIGHT, pixels));
         if (xSemaphoreTake(display_done, pdMS_TO_TICKS(1000)) != pdTRUE) {
             ESP_LOGE(TAG, "LCD transfer timed out; restarting display");
             esp_restart();
@@ -395,8 +387,8 @@ void app_main(void)
     life_t life;
     life_init(&life, grid_a, grid_b, esp_random() ^ (uint32_t)esp_timer_get_time());
     life_seed(&life);
-    ESP_LOGI(TAG, "Life on %dx%d cells, %dx%d AMOLED pixels, %d ms per generation",
-             LIFE_WIDTH, LIFE_HEIGHT, LIFE_CELL_PIXELS, LIFE_CELL_PIXELS, FRAME_MS);
+    ESP_LOGI(TAG, "Life on %dx%d cells, %dx%d AMOLED pixels, %d ms per generation", LIFE_WIDTH,
+             LIFE_HEIGHT, LIFE_CELL_PIXELS, LIFE_CELL_PIXELS, FRAME_MS);
 
     TickType_t frame_start = xTaskGetTickCount();
     int64_t window_start_us = esp_timer_get_time();
@@ -412,8 +404,8 @@ void app_main(void)
         touch_event_t touch;
         while (xQueueReceive(touch_events, &touch, 0) == pdTRUE) {
             const int added = life_stamp(&life, touch.cell_x, touch.cell_y);
-            ESP_LOGI(TAG, "touch raw=(%u,%u) cell=(%u,%u) added=%d",
-                     touch.raw_x, touch.raw_y, touch.cell_x, touch.cell_y, added);
+            ESP_LOGI(TAG, "touch raw=(%u,%u) cell=(%u,%u) added=%d", touch.raw_x, touch.raw_y,
+                     touch.cell_x, touch.cell_y, added);
         }
         const bool still = life.quiet_generations >= LIFE_STILL_GENERATIONS;
         if (life.generation % LIFE_EDGE_INTERVAL == 0 || still) {
@@ -421,9 +413,8 @@ void app_main(void)
             if (gliders) {
                 life.quiet_generations = 0;
                 ESP_LOGI(TAG, "generation=%lu edge=%lu gliders=%d reason=%s",
-                         (unsigned long)life.generation,
-                         (unsigned long)((life.launches - 1) & 3), gliders,
-                         still ? "still" : "interval");
+                         (unsigned long)life.generation, (unsigned long)((life.launches - 1) & 3),
+                         gliders, still ? "still" : "interval");
             }
         }
         int64_t display_start_us = esp_timer_get_time();
@@ -436,14 +427,14 @@ void app_main(void)
         vTaskDelayUntil(&frame_start, pdMS_TO_TICKS(FRAME_MS));
         if (++frames_in_window == 100) {
             int64_t elapsed_us = esp_timer_get_time() - window_start_us;
-            ESP_LOGI(TAG, "generation=%lu living=%lu births=%lu avg_work=%lu ms sim=%lu ms display=%lu ms strips=%lu/%d fps=%lu",
-                     (unsigned long)life.generation,
-                     (unsigned long)stats.living, (unsigned long)stats.births,
-                     (unsigned long)(work_ms_total / frames_in_window),
+            ESP_LOGI(TAG,
+                     "generation=%lu living=%lu births=%lu avg_work=%lu ms sim=%lu ms display=%lu "
+                     "ms strips=%lu/%d fps=%lu",
+                     (unsigned long)life.generation, (unsigned long)stats.living,
+                     (unsigned long)stats.births, (unsigned long)(work_ms_total / frames_in_window),
                      (unsigned long)(simulation_ms_total / frames_in_window),
                      (unsigned long)(display_ms_total / frames_in_window),
-                     (unsigned long)(strips_total / frames_in_window),
-                     LCD_HEIGHT / STRIP_HEIGHT,
+                     (unsigned long)(strips_total / frames_in_window), LCD_HEIGHT / STRIP_HEIGHT,
                      (unsigned long)(100000000LL / elapsed_us));
             frames_in_window = 0;
             work_ms_total = 0;

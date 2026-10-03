@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -9,8 +10,9 @@
 static size_t changed(const uint16_t *a, const uint16_t *b)
 {
     size_t count = 0;
-    for (size_t i = 0; i < PIN_WIDTH * PIN_HEIGHT; ++i)
+    for (size_t i = 0; i < PIN_WIDTH * PIN_HEIGHT; ++i) {
         count += a[i] != b[i];
+    }
     return count;
 }
 
@@ -30,8 +32,9 @@ int main(void)
     renderer_init();
     renderer_prepare(&scene, 2200, 0, 0, 0, 0, 0, 268, 120, -1);
     renderer_strip(&scene, 0, PIN_HEIGHT, whole);
-    for (int y = 0; y < PIN_HEIGHT; y += 60)
+    for (int y = 0; y < PIN_HEIGHT; y += 60) {
         renderer_strip(&scene, y, 60, strips + y * PIN_WIDTH);
+    }
     assert(memcmp(whole, strips, PIXELS * sizeof(uint16_t)) == 0);
 
     /* Motion energy alone must never trigger a brightness/glow effect. */
@@ -59,10 +62,10 @@ int main(void)
     renderer_strip(&scene, 0, PIN_HEIGHT, strips);
     assert(changed(whole, strips) > 100);
 
-    renderer_prepare(&scene, 2200, 2.0f, -2.0f, 1024.0f, 1.0f,
-                     2, 0, 0, 1400);
-    for (int y = 0; y < PIN_HEIGHT; y += 60)
+    renderer_prepare(&scene, 2200, 2.0f, -2.0f, 1024.0f, 1.0f, 2, 0, 0, 1400);
+    for (int y = 0; y < PIN_HEIGHT; y += 60) {
         renderer_strip(&scene, y, 60, strips + y * PIN_WIDTH);
+    }
 
     for (int i = 0; i < GUARD; ++i) {
         assert(a[i] == 0xA55A && a[PIXELS + GUARD + i] == 0xA55A);
@@ -84,10 +87,11 @@ int main(void)
         for (int e = 0; e < EDGE_COUNT; ++e) {
             projected_edge_t *edge = &scene.edges[e];
             projected_star_t *p = &scene.stars[edge->a], *q = &scene.stars[edge->b];
-            if (edge->alpha > 20 && p->alpha && q->alpha &&
-                p->x >= 0 && p->x < PIN_WIDTH && p->y >= 0 && p->y < PIN_HEIGHT &&
-                q->x >= 0 && q->x < PIN_WIDTH && q->y >= 0 && q->y < PIN_HEIGHT)
+            if (edge->alpha > 20 && p->alpha && q->alpha && p->x >= 0 && p->x < PIN_WIDTH &&
+                p->y >= 0 && p->y < PIN_HEIGHT && q->x >= 0 && q->x < PIN_WIDTH && q->y >= 0 &&
+                q->y < PIN_HEIGHT) {
                 ++visible_edges;
+            }
         }
         assert(visible_edges >= 5);
         previous = scene;

@@ -1,14 +1,9 @@
 # Physics review — 2026-09-28
 
-Status: revised solver passes host validation and is flashed on the ESP32-S3
-with diagnostics enabled. The initial checkpoint is commit `3328da6` in the
-project repository. Device timing passed at rest and under an automated stress
-sequence. The user confirmed the bulk wall-release revision was substantially
-better, then reported a remaining single row at walls/ceiling during quick
-rotations. The user also confirmed the interpolation correction in `2df7ab5`
-was substantially better. The accepted motion checkpoint is `ea0b123`. The
-user then reported a persistent V-shaped dark band despite the first idle
-rendering correction. The color correction below is flashed for that check.
+These notes describe the solver's separating wall boundaries and density/color
+reconstruction. Host checks cover conservation, wall release and settling.
+Earlier device captures verified scheduling; visual checks of the idle pool and
+backpack walking remain pending.
 
 ## Why water lingered at walls
 
@@ -229,11 +224,11 @@ The subsequent interior color correction recovered display throughput to
 59.84 FPS. Its 60 performance windows kept physics at 60.03 Hz, all 573 particles,
 mass ratio 1.00000, and zero resets. Free internal memory stayed at 145,788 bytes.
 The capture verifies device scheduling and memory after simplifying the color
-lookup; the user's check of the photographed dark band remains pending.
+lookup; physical review of the idle dark band remains pending.
 
 Telemetry logs solver phase costs, maximum step time, memory, resets, sensor
 values, fluid centroid, and mean fluid velocity. The autonomous stress sequence
-establishes performance under load; the user's physical walking and wall-release
+establishes performance under load; physical walking and wall-release
 check is still required to establish the intended feel.
 
 ## Validation and remaining gates
@@ -262,7 +257,7 @@ display pixels on average, peaking at 37%, relative to a stationary control.
   lacks its runtime library.
 - ESP-IDF firmware build and image-size checks.
 
-The settled-wall visual tests now start from a genuinely settled pool and use
+The settled-wall visual tests now start from a settled pool and use
 acceleration-based bounds. The former early-displacement assertions required
 the artificial instantaneous centroid kick; they were replaced alongside the
 stronger four-wall impulse/acceleration tests.

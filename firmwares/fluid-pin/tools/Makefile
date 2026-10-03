@@ -2,14 +2,14 @@ CC ?= cc
 CFLAGS ?= -O3 -g -Wall -Wextra -Werror
 CPPFLAGS += -I../main
 LDLIBS += -lm
-BIN ?= /tmp/fluid-pin-host
+BIN ?= ../build/host
 
-all: $(BIN)/v9-validation $(BIN)/test-motion $(BIN)/test-walk $(BIN)/test-axis-translation $(BIN)/test-tilt $(BIN)/test-shake $(BIN)/test-boundaries $(BIN)/test-render
+all: $(BIN)/solver-validation $(BIN)/test-motion $(BIN)/test-walk $(BIN)/test-axis-translation $(BIN)/test-tilt $(BIN)/test-shake $(BIN)/test-boundaries $(BIN)/test-render
 
 $(BIN):
 	mkdir -p $@
 
-$(BIN)/v9-validation: ../main/fluid.c ../main/render.c preview.c ../main/fluid.h ../main/render.h ../main/fluid_config.h | $(BIN)
+$(BIN)/solver-validation: ../main/fluid.c ../main/render.c preview.c ../main/fluid.h ../main/render.h ../main/fluid_config.h | $(BIN)
 	$(CC) $(CPPFLAGS) $(CFLAGS) ../main/fluid.c ../main/render.c preview.c $(LDLIBS) -o $@
 
 $(BIN)/test-motion: ../main/motion.c test_motion.c ../main/motion.h ../main/fluid_config.h | $(BIN)

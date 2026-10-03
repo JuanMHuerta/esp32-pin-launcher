@@ -1,0 +1,36 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: ./tools/test.sh
+        env:
+          SANITIZERS: address,undefined
+      - run: python3 tools/check_repo.py
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: ./tools/format.sh --check
+
+  firmware:
+    runs-on: ubuntu-24.04
+    container: espressif/idf:v5.5.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build launcher and all apps
+        shell: bash
+        run: |
+          source /opt/esp/idf/export.sh
+          ./build-and-flash.sh --build-only

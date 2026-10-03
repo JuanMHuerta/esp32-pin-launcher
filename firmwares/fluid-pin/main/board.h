@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include "render.h"
 #include "motion.h"
@@ -14,7 +15,9 @@ typedef struct {
     bool imu_ok;
     bool gyro_calibrated;
 } board_status_t;
-typedef struct { uint32_t rgb_us, transfer_us, frame_us; } board_display_metrics;
+typedef struct {
+    uint32_t rgb_us, transfer_us, frame_us;
+} board_display_metrics;
 void board_init(void);
 void board_present(const fluid_renderer *r, board_display_metrics *metrics);
 void board_status(board_status_t *out);

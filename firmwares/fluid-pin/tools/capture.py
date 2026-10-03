@@ -1,4 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """Capture device evidence without restarting work after an observation timeout."""
+
 import argparse
 import time
 from pathlib import Path

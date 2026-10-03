@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -14,10 +15,12 @@ int main(void)
         assert(colors[0][pixel] == 0);
         assert(colors[LIFE_ALIVE + 1][pixel] == colors[LIFE_MAX_AGE][pixel]);
     }
-    assert(colors[LIFE_ALIVE][5] == 0xffff); // white birth core
-    assert(colors[LIFE_ALIVE + 1][5] != colors[LIFE_ALIVE + 1][1]); // cyan core + rim
-    assert(colors[4][5] != colors[4][1]); // hot magenta core + deep-red rim
-    assert(colors[1][5] != colors[4][5]); // death trace fades
+    const int core = 2 * LIFE_CELL_PIXELS + 2;
+    const int rim = 2;
+    assert(colors[LIFE_ALIVE][core] == 0xffff);
+    assert(colors[LIFE_ALIVE + 1][core] != colors[LIFE_ALIVE + 1][rim]);
+    assert(colors[4][core] != colors[4][rim]);
+    assert(colors[1][core] != colors[4][core]);
     puts("Palette state transitions and cyber LED tiles: OK");
     return 0;
 }

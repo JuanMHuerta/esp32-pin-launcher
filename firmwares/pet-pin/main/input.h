@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include "pet.h"
 #include <stddef.h>
@@ -7,10 +8,12 @@ typedef struct {
     int start_x, start_y, x, y, travel;
     uint32_t started_ms;
 } gesture_t;
-typedef struct { pet_event_t type; int x, y; } input_event_t;
+typedef struct {
+    pet_event_t type;
+    int x, y;
+} input_event_t;
 bool touch_decode(const uint8_t report[5], bool *down, int *x, int *y);
-bool gesture_update(gesture_t *g, bool down, int x, int y,
-                    uint32_t now_ms, input_event_t *event);
+bool gesture_update(gesture_t *g, bool down, int x, int y, uint32_t now_ms, input_event_t *event);
 typedef struct {
     bool ready;
     float gravity[3], neutral_y, tilt;

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef TOUCH_MAP_H
 #define TOUCH_MAP_H
 
