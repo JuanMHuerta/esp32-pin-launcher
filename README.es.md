@@ -50,10 +50,11 @@ comprobá el mapeo antes de usar otra revisión de hardware.
 
 ## Compilar e instalar
 
-El [instalador web](documentation/WEB_FLASHER.es.md) permite elegir apps e
+El [instalador web](https://juanmhuerta.github.io/esp32-pin-launcher/) permite elegir apps e
 instalarlas por USB desde el navegador. El menú y el modo Demo se incluyen
-siempre y usan la selección instalada. La guía explica cómo probar el sitio
-localmente y publicarlo en GitHub Pages.
+siempre y usan la selección instalada. La
+[guía del instalador](documentation/WEB_FLASHER.es.md) explica cómo probar el
+sitio localmente y publicarlo en GitHub Pages.
 
 Usá ESP-IDF **5.5.x**; los archivos de dependencias se generaron con **5.5.1**.
 Instalá la cadena de herramientas ESP32-S3 siguiendo la

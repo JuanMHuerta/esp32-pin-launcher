@@ -2,6 +2,8 @@
 
 [English](WEB_FLASHER.md) · [Español](WEB_FLASHER.es.md)
 
+[Abrir el instalador USB](https://juanmhuerta.github.io/esp32-pin-launcher/).
+
 La [página web](../web/index.html) instala el menú y una selección de las nueve
 apps en la Waveshare ESP32-S3-Touch-AMOLED-1.91 (SKU 28596). Se necesita un
 navegador de escritorio con Web Serial (Chrome o Edge), un cable USB de datos y

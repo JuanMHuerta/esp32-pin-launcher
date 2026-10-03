@@ -48,10 +48,10 @@ tested on this project's board; confirm the mapping before using another revisio
 
 ## Build and install
 
-For browser installation, the [one-page web flasher](documentation/WEB_FLASHER.md)
+For browser installation, the [USB web flasher](https://juanmhuerta.github.io/esp32-pin-launcher/)
 lets users choose apps and install over USB. The launcher menu and Demo mode
-are included and follow the installed selection. It is ready to be published
-as a static GitHub Pages site; see the guide for local preview and publishing.
+are included and follow the installed selection. The
+[flasher guide](documentation/WEB_FLASHER.md) covers local preview and publishing.
 
 Use ESP-IDF **5.5.x**; the dependency locks were generated with **5.5.1**.
 Install the ESP32-S3 toolchain using the

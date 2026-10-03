@@ -2,6 +2,8 @@
 
 [English](WEB_FLASHER.md) · [Español](WEB_FLASHER.es.md)
 
+[Open the USB web flasher](https://juanmhuerta.github.io/esp32-pin-launcher/).
+
 The [web page](../web/index.html) installs the launcher and any selection of the
 nine apps on the Waveshare ESP32-S3-Touch-AMOLED-1.91 (SKU 28596). Users need a
 desktop browser with Web Serial (Chrome or Edge), a USB data cable, and the page
@@ -80,7 +82,7 @@ user to press RESET. Connection and write failures release the serial port and
 allow retry. For manual download mode: hold BOOT, press/release RESET, release
 BOOT, then select the new USB Serial/JTAG port. Close other serial monitors.
 
-## Publish later on GitHub Pages
+## Publish on GitHub Pages
 
 The manual [Publish web flasher workflow](../.github/workflows/web-flasher-pages.yml)
 builds firmware with ESP-IDF 5.5.1, packages and bundles the site, uploads the
