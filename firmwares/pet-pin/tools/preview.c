@@ -3,6 +3,7 @@
 #include "paint.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 int main(int argc, char **argv)
 {
@@ -25,6 +26,7 @@ int main(int argc, char **argv)
     uint16_t pixels[PET_W * PET_H];
     unsigned char rgb[PET_W * PET_H * 3];
     for (int i = 0; i < frames; ++i) {
+        pet_set_tilt(&pet, state == PET_BALANCE ? .75f + .2f * sinf(i * .05f) : 0);
         pet_step(&pet, i % 3 == 0 ? 34 : 33);
         pet_paint(&pet, pixels);
         for (int k = 0; k < PET_W * PET_H; ++k) {

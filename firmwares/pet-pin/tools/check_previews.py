@@ -9,8 +9,9 @@ import json
 from pathlib import Path
 from PIL import Image, ImageChops
 
+from states import STATES
+
 ROOT = Path(__file__).resolve().parents[1]
-STATES = ["idle", "walk", "sniff", "eat", "sleep", "love", "play", "surprise", "wave"]
 
 
 def main():
@@ -49,7 +50,7 @@ def main():
         }
     (ROOT / "artifacts/animation-checks.json").write_text(json.dumps(result, indent=2) + "\n")
     print(
-        "PASS: all nine exported animations have correct size/duration, vary, and contain no hard frame jumps"
+        "PASS: all exported animations have correct size/duration, vary, and contain no hard frame jumps"
     )
 
 

@@ -1,5 +1,7 @@
 # Wayfarer artwork
 
+[English](ART_DIRECTION.md) · [Español](ART_DIRECTION.es.md)
+
 Wayfarer uses a cozy, repaired hauler cockpit with warm cream,
 olive-grey, and amber materials. A cool event-colored spill sweeps across the
 canopy frame and projects soft rib shadows onto the console. Four amber

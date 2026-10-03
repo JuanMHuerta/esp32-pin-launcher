@@ -49,7 +49,7 @@ static void test_interactions(void)
     assert(!p.manual_sleep && p.state == PET_LOVE);
     pet_event(&p, PET_HOLD, 67, 30);
     pet_event(&p, PET_HOLD, 67, 30);
-    assert(!p.manual_sleep && p.state == PET_WAVE);
+    assert(!p.manual_sleep && p.state == PET_STRETCH);
     pet_event(&p, PET_SWIPE, 133, 20);
     assert(p.state == PET_PLAY && p.target_x == 104);
     pet_event(&p, PET_SHAKE, 0, 0);
@@ -70,6 +70,96 @@ static void test_interactions(void)
     pet_set_state(&p, PET_STATE_COUNT, 0);
     assert(p.state == prior);
     printf("PASS interactions, feeding arrival, nap/wake, bounded hops, shake cooldown\n");
+}
+static void test_scene_behavior(void)
+{
+    pet_t p;
+    pet_init(&p, 77);
+    assert(pet_daylight(&p) == 1);
+    p.uptime_ms = PET_DAY_MS / 2;
+    assert(pet_daylight(&p) < .001f);
+    p.uptime_ms = PET_DAY_MS / 4;
+    assert(fabsf(pet_daylight(&p) - .5f) < .001f);
+    p.uptime_ms += 100000ULL * PET_DAY_MS;
+    assert(fabsf(pet_daylight(&p) - .5f) < .001f);
+    pet_set_state(&p, PET_IDLE, 10000);
+    pet_set_tilt(&p, .9f);
+    tick(&p, 500);
+    assert(p.state == PET_IDLE);
+    tick(&p, 100);
+    assert(p.state == PET_BALANCE);
+    tick(&p, 1000);
+    assert(p.lean > 4 && p.gaze > 2);
+    pet_set_tilt(&p, .4f);
+    tick(&p, 500);
+    assert(p.state == PET_BALANCE); // Hysteresis: don't chatter near the trigger.
+    pet_set_tilt(&p, 0);
+    tick(&p, 500);
+    assert(p.state == PET_WAVE);
+    pet_set_tilt(&p, -1);
+    tick(&p, 1000);
+    assert(p.state == PET_WAVE); // Let a recovery finish before another reaction.
+    p.x = 106;
+    p.speed = 0;
+    pet_event(&p, PET_TAP, 0, 58);
+    tick(&p, 4000);
+    assert(p.food && p.state == PET_WALK); // Tilting doesn't interrupt feeding.
+    tick(&p, 3000);
+    assert(!p.food && p.state == PET_EAT); // Finish the meal before balancing.
+    pet_event(&p, PET_HOLD, 0, 0);
+    tick(&p, 10000);
+    assert(p.manual_sleep && p.state == PET_SLEEP);
+    pet_event(&p, PET_SHAKE, 0, 0);
+    assert(!p.manual_sleep && p.state == PET_SURPRISE);
+    tick(&p, 6000);
+    pet_event(&p, PET_SHAKE, 0, 0);
+    assert(p.state == PET_DANCE);
+    tick(&p, 6000);
+    pet_event(&p, PET_SHAKE, 0, 0);
+    assert(p.state == PET_PLAY);
+
+    pet_init(&p, 77);
+    pet_set_state(&p, PET_SLEEP, 600);
+    tick(&p, 600);
+    assert(p.state == PET_STRETCH);
+    uint32_t nap_ms[2];
+    for (int night = 0; night < 2; ++night) {
+        pet_init(&p, 77);
+        p.uptime_ms = night ? PET_DAY_MS / 2 : 0;
+        p.activities = 1u << PET_SLEEP;
+        pet_set_state(&p, PET_IDLE, 20);
+        tick(&p, 20);
+        assert(p.state == PET_SLEEP);
+        nap_ms[night] = p.duration_ms;
+    }
+    assert(nap_ms[1] > nap_ms[0]);
+    /* Every autonomous activity appears within a short unattended session,
+       including eating a berry that was found and approached first. */
+    pet_init(&p, 77);
+    bool approached = false, fed = false;
+    unsigned seen = 0;
+    pet_state_t previous = p.state;
+    for (unsigned ms = 0; ms < 180000; ms += 20) {
+        pet_step(&p, 20);
+        seen |= 1u << p.state;
+        if (p.food) {
+            approached = true;
+            assert(p.state == PET_WALK);
+        }
+        if (p.state == PET_EAT) {
+            assert(approached);
+            fed = true;
+        }
+        if (p.state_ms == 0) {
+            assert(p.state != previous);
+        }
+        previous = p.state;
+    }
+    unsigned automatic = ((1u << PET_STATE_COUNT) - 1) &
+                         ~((1u << PET_LOVE) | (1u << PET_SURPRISE) | (1u << PET_BALANCE));
+    assert((seen & automatic) == automatic && fed);
+    puts("PASS cycle periodicity, tilt sustain/recovery, feeding/nap protection, varied shake "
+         "responses, wake stretch and autonomous variety");
 }
 static void test_touch(void)
 {
@@ -180,7 +270,36 @@ static void test_paint(void)
     assert(!pet_expand_strip(buf.pixels, 1, 40, strip.pixels));
     assert(pet_rgb(0xff0000) == 0xf800 && pet_rgb(0x00ff00) == 0x07e0);
     assert(pet_rgb(0x0000ff) == 0x001f && pet_rgb(0xffffff) == 0xffff);
-    printf("PASS 2,160 animation frames, buffer guards, strip bounds, every expanded wire pixel\n");
+    // Rendering covers the entire frame, stays pure, and loops the sky palette.
+    pet_init(&p, 42);
+    p.uptime_ms = 0;
+    memset(buf.pixels, 0xff, sizeof(buf.pixels));
+    pet_t unchanged = p;
+    pet_paint(&p, buf.pixels);
+    assert(!memcmp(&p, &unchanged, sizeof(p)));
+    for (int i = 0; i < PET_W * PET_H; ++i) {
+        assert(buf.pixels[i] != 0xffff);
+    }
+    uint16_t noon = buf.pixels[6 * PET_W + 67];
+    p.uptime_ms = PET_DAY_MS / 2;
+    pet_paint(&p, buf.pixels);
+    assert(buf.pixels[6 * PET_W + 67] != noon);
+    p.uptime_ms = PET_DAY_MS;
+    pet_paint(&p, buf.pixels);
+    assert(buf.pixels[6 * PET_W + 67] == noon);
+    for (int edge = 0; edge < 2; ++edge) {
+        p.x = edge ? 106 : 28;
+        pet_set_tilt(&p, edge ? 1 : -1);
+        for (int state = 0; state < PET_STATE_COUNT; ++state) {
+            pet_set_state(&p, state, 10000);
+            tick(&p, 1000);
+            pet_paint(&p, buf.pixels);
+            assert(buf.before == 0x1234fedc8765abcdULL && buf.after == buf.before);
+        }
+    }
+    printf("PASS %u animation frames, render purity/coverage, edge poses, buffer guards, "
+           "strip bounds and every expanded wire pixel\n",
+           PET_STATE_COUNT * 240);
 }
 static void test_long_run(void)
 {
@@ -194,7 +313,8 @@ static void test_long_run(void)
         assert(p.state >= 0 && p.state < PET_STATE_COUNT);
         autonomous |= 1u << p.state;
     }
-    unsigned all_auto = ((1u << PET_STATE_COUNT) - 1) & ~(1u << PET_LOVE) & ~(1u << PET_SURPRISE);
+    unsigned all_auto = ((1u << PET_STATE_COUNT) - 1) &
+                        ~((1u << PET_LOVE) | (1u << PET_SURPRISE) | (1u << PET_BALANCE));
     assert((autonomous & all_auto) == all_auto);
     assert(p.uptime_ms == 86400000 && p.transitions > 5000);
     printf("PASS 24 simulated hours / %u transitions / autonomous states=0x%x\n", p.transitions,
@@ -203,6 +323,7 @@ static void test_long_run(void)
 int main(void)
 {
     test_interactions();
+    test_scene_behavior();
     test_touch();
     test_motion();
     test_paint();

@@ -1,5 +1,7 @@
 # Conway
 
+[English](README.md) · [Español](README.es.md)
+
 Conway's Game of Life on an 89 × 40 toroidal grid. Each cell occupies a 6 × 6
 pixel tile on the 536 × 240 display. The simulation advances at ten generations
 per second, starting with four sparse glider or R-pentomino patterns. New gliders

@@ -1,5 +1,7 @@
 # Historical app validation
 
+[English](APP_VALIDATION.md) · [Español](APP_VALIDATION.es.md)
+
 These records describe earlier firmware and layouts. Their flash addresses and
 menu shortcuts are historical; use the current generated partition table.
 
@@ -206,6 +208,73 @@ run validates execution on the attached hardware. No enclosure or physical
 backpack fastening was manufactured. Battery endurance and sunlight visibility
 were not measured. The firmware supports the board's normal battery power path
 and offers three display brightness levels.
+
+## Miso visual and behavior update — 2026-10-03
+
+Miso now uses a layered woodland clearing with an open center, broad shaded
+shapes, an exposed orange scarf, and distinct daylight, sunset, night and dawn
+palettes. The six-minute cycle includes a setting sun, rising crescent, clouds,
+stars, daytime butterflies and glowing nighttime fireflies/mushrooms. All
+on-screen text was removed; sleeping uses a berry dream bubble.
+
+Fourteen poses include the new groom, stretch, dance, look and balance states.
+Eleven autonomous activities run in shuffled cycles. Autonomous feeding walks
+to a visible berry before eating, night naps last longer, and naps end with a
+stretch. Filtered tilt drives gaze, lean, ears and scenery; sustained tilt adds
+a balancing pose, with settling hysteresis and a recovery wave. Shake reactions
+cycle through surprise, dance and chase. Feeding and requested naps are
+protected from tilt interruptions. Diagnostic state commands hold their pose
+for capture while allowing the filtered tilt to animate it.
+
+Validation of this update:
+
+- `./tools/test.sh --app pet-pin` passed, including 24 simulated hours,
+  18,839 transitions, all eleven autonomous activities, feeding arrival,
+  tilt sustain/recovery, night nap duration, manual nap protection, three shake
+  reactions, touch decoding, render purity/coverage, 3,360 rendering frames,
+  edge poses, framebuffer guards and every expanded RGB565 wire pixel.
+- The same suite passed with UndefinedBehaviorSanitizer in trap mode.
+- All fourteen five-second animations passed `tools/check_previews.py`, checking
+  dimensions, timing, variation and frame changes. The checked-in showcase has
+  420 frames over 28 seconds and compresses the cycle for review; its largest
+  significant frame change was 21.75% of the image.
+- The four lighting phases, fourteen poses at half display size, and sampled
+  showcase frames were visually reviewed. These are generated with the actual
+  C firmware renderer; labels occur only outside frames on the action sheet.
+- ESP-IDF 5.5.1 built the final 366,320-byte image with pinned components. It
+  fits the current 384 KiB launcher allocation without a layout change.
+- Python lint/format checks, C formatting, repository links, compiled launcher
+  allocation checks and `git diff --check` passed.
+
+The host checks above preceded the on-device check below. Board initialization,
+sensor acquisition and DMA ownership are unchanged. No new device lesson was
+learned.
+
+### Miso flash and startup check — 2026-10-03
+
+The connected ESP32-S3 revision v0.2 board's partition table was read back and
+matched the compiled launcher table. The final 366,320-byte Miso image was
+written into its existing 384 KiB allocation at `0x120000` (`ota_2`). A separate
+`verify_flash` check matched the image digest. OTA selection was cleared to boot
+the launcher, then USB command `3` selected Miso.
+
+A 36-second startup check passed with three performance windows: **30.004–30.036
+fps**, maximum frame work **23,284 μs**, **zero late frames**, and exactly
+**252,468 bytes** free heap throughout. Touch and IMU initialization succeeded;
+status reported zero sensor errors and dropped events. The running ELF identity
+matched the current build. An exact framebuffer capture was saved and visually
+reviewed, showing the updated daylight scene and stretch pose. The session
+ended with an acknowledged `auto` command and the serial port closed; Miso was
+left running autonomously at medium brightness.
+
+These runtime measurements cover startup and early daylight activity. Physical
+touch/tilt gestures, the full lighting cycle, and actual viewing-distance
+readability were not exercised in this smoke check.
+
+Flashed image SHA-256:
+`e00c4c0fe51c520c1b45f3869e526d872196aab77b6f82580bda98d6ac909e06`.
+Flash/readback logs, runtime log/JSON, and the device-frame capture are retained
+in the ignored `firmwares/pet-pin/artifacts/flash-20261003.tPzH29bA/` directory.
 
 ## Lumen
 

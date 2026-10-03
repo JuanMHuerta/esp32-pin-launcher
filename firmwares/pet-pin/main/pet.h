@@ -8,7 +8,8 @@ enum {
     PET_H = 60,
     PET_SCALE = 4,
     DISPLAY_W = PET_W * PET_SCALE,
-    DISPLAY_H = PET_H * PET_SCALE
+    DISPLAY_H = PET_H * PET_SCALE,
+    PET_DAY_MS = 360000
 };
 typedef enum {
     PET_IDLE,
@@ -20,6 +21,11 @@ typedef enum {
     PET_PLAY,
     PET_SURPRISE,
     PET_WAVE,
+    PET_GROOM,
+    PET_STRETCH,
+    PET_DANCE,
+    PET_LOOK,
+    PET_BALANCE,
     PET_STATE_COUNT
 } pet_state_t;
 typedef enum { PET_TAP, PET_SWIPE, PET_HOLD, PET_SHAKE } pet_event_t;
@@ -30,6 +36,7 @@ typedef struct {
     uint64_t uptime_ms;
     uint32_t rng, state_ms, duration_ms, blink_ms, next_blink_ms, shake_cooldown_ms;
     uint32_t interactions, transitions, visited;
+    uint32_t activities, tilt_ms, settled_ms, motion_cooldown_ms, shakes;
     pet_state_t state;
     float x, target_x, speed, gait, lift, lift_speed, lean, gaze, sleep_blend;
     float tilt, food_x;
@@ -45,3 +52,5 @@ void pet_set_tilt(pet_t *pet, float tilt);
 /* Used by the hardware diagnostic console and host animation previews. */
 void pet_set_state(pet_t *pet, pet_state_t state, uint32_t duration_ms);
 const char *pet_state_name(pet_state_t state);
+/* Smooth daylight intensity: noon at boot, midnight halfway through the cycle. */
+float pet_daylight(const pet_t *pet);

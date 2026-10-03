@@ -72,6 +72,7 @@ static void command(const char *line)
         color_bars = false;
         pet.manual_sleep = false;
         pet.food = false;
+        pet.motion_cooldown_ms = pet.tilt_ms = pet.settled_ms = 0;
         pet_set_state(&pet, PET_IDLE, 2000);
     } else if (sscanf(line, "state %19s", name) == 1) {
         bool found = false;
@@ -80,6 +81,9 @@ static void command(const char *line)
                 pet.manual_sleep = false;
                 pet.food = false;
                 pet_set_state(&pet, i, 10000);
+                // Keep a diagnostic pose available for capture. Filtered tilt
+                // still animates its eyes, ears and lean during this interval.
+                pet.motion_cooldown_ms = 10000;
                 found = true;
             }
         }

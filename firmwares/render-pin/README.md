@@ -1,5 +1,7 @@
 # Lumen
 
+[English](README.md) · [Español](README.es.md)
+
 A procedural 3D starfield for the Waveshare ESP32-S3-Touch-AMOLED-1.91
 (SKU 28596). Small constellations glide toward you through layers of bright white
 stars. A few points have yellow or red accents. Thin luminous connections,
@@ -18,6 +20,8 @@ traveling glints and halos are drawn at 536 × 240 from geometry.
   around the screen's normal banks the sky. Movement does not change brightness.
 - **Tap:** sends a light wave from the touch point and cycles Ice, Warm White,
   and Silver: one star color and one connection accent at a time.
+
+Hold BOOT for 1.5 seconds and release to return to the launcher.
 
 The startup pose sets the neutral accelerometer reference. Gyro pitch/yaw
 respond immediately, then ease back toward the gravity-based view over roughly

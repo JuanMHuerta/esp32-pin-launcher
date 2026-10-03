@@ -1,0 +1,28 @@
+name: Bug report / Reportar un error
+description: Report a reproducible problem in English or Spanish.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened? / ¿Qué pasó?
+      description: Include steps to reproduce, expected behavior and actual behavior.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / Versión
+      description: Commit or web flasher build ID; app name if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Setup / Entorno
+      description: Board SKU and PCB revision, OS, browser or ESP-IDF version, install method.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or images / Registros o imágenes
+      description: Paste relevant serial output or attach a screenshot. Remove private data.
+      render: text

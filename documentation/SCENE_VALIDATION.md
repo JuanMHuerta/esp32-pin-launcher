@@ -1,5 +1,7 @@
 # New app validation
 
+[English](SCENE_VALIDATION.md) · [Español](SCENE_VALIDATION.es.md)
+
 Historical record: this predates MECH removal and the current nine-app menu.
 Offsets, subtypes and shortcut numbers below describe the tested layout only.
 

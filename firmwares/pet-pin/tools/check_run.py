@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 import re
 
+from states import STATES
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -51,10 +53,12 @@ def main():
         "firmware error"
     )
     assert text.count("Miso 1.0.0 reset=") == 1, "unexpected reset or missing boot evidence"
-    states = ["idle", "walk", "sniff", "eat", "sleep", "love", "play", "surprise", "wave"]
+    states = STATES
     for state in states:
         assert f"COMMAND state {state} -> {state}" in text, f"unexercised state {state}"
-    assert text.count("END_FRAME") == 10, "missing animation/color-bar framebuffer captures"
+    assert text.count("END_FRAME") == len(states) + 1, (
+        "missing animation/color-bar framebuffer captures"
+    )
     for level in range(3):
         assert f"COMMAND brightness {level} ->" in text, "untested brightness level"
     # Check the actual captured color-bar payload, not merely its command ACK.
@@ -67,7 +71,7 @@ def main():
     statuses = [line for line in text.splitlines() if "STATUS " in line]
     final = statuses[-1]
     assert "touch=1 imu=1" in final and "errors=0 dropped=0" in final, "input hardware error"
-    assert "visits=0x1ff" in final, "not all behaviors visited"
+    assert f"visits=0x{(1 << len(states)) - 1:x}" in final, "not all behaviors visited"
     assert int(re.search(r"samples=(\d+)", final)[1]) > 15000, "insufficient motion samples"
     assert int(re.search(r"uptime=(\d+)", final)[1]) >= 420000, "insufficient runtime"
     root = Path(__file__).resolve().parents[1]

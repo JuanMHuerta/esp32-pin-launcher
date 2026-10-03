@@ -1,5 +1,7 @@
 # WAYFARER
 
+[English](README.md) · [Español](README.es.md)
+
 A pixel-art take on Wayfarer for the Waveshare ESP32-S3-Touch-AMOLED-1.91
 (SKU 28596). The cozy hauler cockpit has patched cream and olive-grey
 panels, warm cabin lights, and green instruments. Four amber fixtures have
@@ -64,3 +66,6 @@ python3 tools/make_preview.py --event 10 --seed 25 --seconds 22 --fps 12 --outpu
 ```
 
 Host scene checks are available with `bash tools/test.sh`.
+
+OTA subtypes above describe the full collection. Browser-selected installs assign
+consecutive subtypes; USB shortcuts keep their app identities.

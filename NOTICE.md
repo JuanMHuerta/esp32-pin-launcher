@@ -1,6 +1,8 @@
 # Licensing and asset sources
 
-Multi Pin Launcher code, documentation and repository artwork are distributed
+[English](NOTICE.md) · [Español](NOTICE.es.md)
+
+ESP32 Pin Launcher code, documentation and repository artwork are distributed
 under GPL-3.0-only. The full license is in [LICENSE](LICENSE). Source files carry
 SPDX identifiers; generated asset tables inherit the license of their sources.
 
@@ -17,6 +19,15 @@ this project's license:
 The component manager downloads these from the manifests and lockfiles.
 When distributing firmware, retain the applicable upstream license and notice
 files alongside the corresponding source and build instructions.
+
+The static web flasher bundles `esptool-js` 0.7.0 (Apache-2.0), `pako` 2.x
+(MIT and Zlib), `atob-lite` 2.x (MIT), and `spark-md5` 3.0.2 (MIT).
+The exact versions are recorded in [web/package-lock.json](web/package-lock.json).
+The JavaScript bundle retains upstream license comments. The site build also
+includes these license texts in `THIRD_PARTY_LICENSES.txt`.
+The firmware packager includes upstream firmware license/notice files in
+`FIRMWARE_LICENSES.txt`, the matching project source in `source.tar.gz`, and
+dependency source locations in `SOURCE.txt`.
 
 Conway's patterns and Three Body's figure-eight initial conditions are
 mathematical data; their source references are retained in the code. Maze is

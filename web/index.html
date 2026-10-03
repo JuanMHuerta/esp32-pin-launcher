@@ -1,0 +1,192 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#101314" />
+        <title>ESP32 Pin Launcher · Install your apps</title>
+        <link rel="stylesheet" href="./style.css" />
+        <script type="module" src="./app.js"></script>
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="./"
+                ><span class="brand-mark" aria-hidden="true">▦</span> ESP32 PIN
+                LAUNCHER</a
+            ><span class="board-tag">Waveshare AMOLED 1.91″ · SKU 28596</span
+            ><label class="language-picker"
+                >Language / Idioma
+                <select id="language">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                </select></label
+            >
+        </header>
+        <main>
+            <div class="intro">
+                <p class="eyebrow" data-i18n="eyebrow">9 APPS · ONE ESP32</p>
+                <h1 data-i18n="heading">
+                    Games and scenes<br /><span>for your pin.</span>
+                </h1>
+                <p class="lede" data-i18n="intro">
+                    Pick your apps. Connect your pin.<br />Install the
+                    collection from your browser.
+                </p>
+            </div>
+            <div class="workspace">
+                <section aria-labelledby="apps-heading">
+                    <div class="section-title">
+                        <h2 id="apps-heading" data-i18n="choose">
+                            <span class="step">01</span> Choose your apps
+                        </h2>
+                        <button id="select-all" class="text-button" disabled>
+                            Select all
+                        </button>
+                    </div>
+                    <div id="apps" class="app-grid" aria-busy="true">
+                        <p class="loading" data-i18n="loadingApps">
+                            Loading the app collection…
+                        </p>
+                    </div>
+                    <div class="included">
+                        <span aria-hidden="true">✓</span>
+                        <div>
+                            <strong data-i18n="includedHeading"
+                                >Launcher menu + Demo are always
+                                included</strong
+                            >
+                            <p data-i18n="included">
+                                Your menu shows the apps you select. Demo cycles
+                                through them for five minutes each, then
+                                repeats.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+                <aside>
+                    <section
+                        class="install-panel"
+                        aria-labelledby="install-heading"
+                    >
+                        <h2 id="install-heading" data-i18n="installHeading">
+                            <span class="step">02</span> Install on your pin
+                        </h2>
+                        <ol class="connection-steps">
+                            <li data-i18n="browserStep">
+                                Open this page in desktop Chrome or Edge.
+                            </li>
+                            <li data-i18n="cableStep">
+                                Connect your Waveshare pin with a USB data
+                                cable.
+                            </li>
+                            <li data-i18n="portStep">
+                                Click below and select the device’s USB serial
+                                port.
+                            </li>
+                        </ol>
+                        <div class="summary">
+                            <div>
+                                <span data-i18n="collection"
+                                    >Your collection</span
+                                ><strong id="selection-count">— apps</strong>
+                            </div>
+                            <div>
+                                <span data-i18n="launcher">Launcher & Demo</span
+                                ><strong
+                                    class="accent"
+                                    data-i18n="includedLabel"
+                                    >Included</strong
+                                >
+                            </div>
+                            <div>
+                                <span data-i18n="downloadLabel">Download</span
+                                ><strong id="download-size">—</strong>
+                            </div>
+                        </div>
+                        <p class="install-note" data-i18n="replace">
+                            Installing replaces the firmware and resets
+                            on-device settings.
+                        </p>
+                        <button
+                            id="flash"
+                            data-i18n="connect"
+                            class="primary-button"
+                            disabled
+                        >
+                            Connect & install <span aria-hidden="true">↗</span>
+                        </button>
+                        <progress
+                            id="progress"
+                            max="100"
+                            value="0"
+                            aria-label="Installation progress"
+                            hidden
+                        ></progress>
+                        <p
+                            id="status"
+                            class="status"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            Loading firmware release…
+                        </p>
+                        <details id="log-details">
+                            <summary data-i18n="log">Installation log</summary>
+                            <pre
+                                id="log"
+                                tabindex="0"
+                                aria-label="Installation log"
+                            ></pre>
+                        </details>
+                        <p id="build" class="build-id"></p>
+                    </section>
+                    <section class="help-panel">
+                        <h3 data-i18n="controlsHeading">After installation</h3>
+                        <p data-i18n="menuControls">
+                            Tap <strong>BOOT</strong> to move through the menu.
+                            Hold for <strong>0.7 seconds</strong>, then release
+                            to launch.
+                        </p>
+                        <p data-i18n="appControls">
+                            Inside any app, hold
+                            <strong>BOOT for 1.5 seconds</strong> and release to
+                            return to the menu or stop Demo.
+                        </p>
+                        <details>
+                            <summary data-i18n="helpHeading">
+                                Device won’t connect?
+                            </summary>
+                            <p data-i18n="helpPort">
+                                Close other serial monitors. Hold BOOT, press
+                                and release RESET, then release BOOT. Try
+                                installing again and select the newly appeared
+                                port.
+                            </p>
+                            <p data-i18n="helpCable">
+                                If it still fails, try another USB data cable or
+                                port. Keep the pin connected until installation
+                                finishes.
+                            </p>
+                        </details>
+                    </section>
+                </aside>
+            </div>
+        </main>
+        <footer>
+            <span data-i18n="offline"
+                >Runs on your pin. No account required.</span
+            ><span
+                ><a href="./LICENSE.txt">GPL v3</a> ·
+                <a href="./THIRD_PARTY_LICENSES.txt" data-i18n="thirdParty"
+                    >Third-party licenses</a
+                >
+                · <a href="./NOTICE.txt" data-i18n="credits">Credits</a> ·
+                <a href="./source.tar.gz" data-i18n="source">Source code</a> ·
+                <a href="./FIRMWARE_LICENSES.txt" data-i18n="firmwareLicenses"
+                    >Firmware licenses</a
+                ></span
+            >
+        </footer>
+    </body>
+</html>

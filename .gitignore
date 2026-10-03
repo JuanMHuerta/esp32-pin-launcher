@@ -15,3 +15,15 @@
 *.mpfs.tmp
 core
 core.[0-9]*
+
+# Static web flasher dependencies and generated release payloads.
+web/node_modules/
+web/dist/
+web/public/firmware/
+web/public/previews/
+web/public/manifest.json
+web/public/source.tar.gz
+web/public/FIRMWARE_LICENSES.txt
+web/public/SOURCE.txt
+web/test-results/
+web/playwright-report/

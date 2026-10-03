@@ -13,6 +13,8 @@ import re
 import time
 import serial
 
+from states import STATES
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -48,23 +50,24 @@ def main():
     if args.heap_after is not None:
         scheduled.append((args.heap_after, "heap\n"))
     if args.exercise:
-        states = ["idle", "walk", "sniff", "eat", "sleep", "love", "play", "surprise", "wave"]
+        states = STATES
         for i, state in enumerate(states):
             scheduled.extend([(i * 4 + 1, f"state {state}\n"), (i * 4 + 3, "capture\n")])
+        offset = (len(states) - 9) * 4
         scheduled.extend(
             [
-                (37, "tap 5 50\n"),
-                (43, "swipe 110 30\n"),
-                (47, "hold\n"),
-                (49, "hold\n"),
-                (52, "shake\n"),
-                (56, "auto\n"),
-                (57, "bars\n"),
-                (59, "capture\n"),
-                (60, "auto\n"),
-                (61, "brightness 0\n"),
-                (63, "brightness 2\n"),
-                (65, "brightness 1\n"),
+                (37 + offset, "tap 5 50\n"),
+                (43 + offset, "swipe 110 30\n"),
+                (47 + offset, "hold\n"),
+                (49 + offset, "hold\n"),
+                (52 + offset, "shake\n"),
+                (56 + offset, "auto\n"),
+                (57 + offset, "bars\n"),
+                (59 + offset, "capture\n"),
+                (60 + offset, "auto\n"),
+                (61 + offset, "brightness 0\n"),
+                (63 + offset, "brightness 2\n"),
+                (65 + offset, "brightness 1\n"),
             ]
         )
     scheduled.sort()

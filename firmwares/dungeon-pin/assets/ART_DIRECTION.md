@@ -1,5 +1,7 @@
 # Dungeon artwork
 
+[English](ART_DIRECTION.md) · [Español](ART_DIRECTION.es.md)
+
 The renderer uses a 268 × 120 canvas scaled 2× to the display. Sprite sources use
 64 × 64 cells, a shared 64-color palette and binary alpha. Transparent pixels use
 palette index zero. Keep source sheets on that palette before compiling them.

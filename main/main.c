@@ -37,10 +37,8 @@ enum {
     LCD_RST = 17,
     BOOT_BUTTON = 0,
     APP_COUNT = 9,
-    MENU_COUNT = APP_COUNT + 1,
 };
 
-enum { DEMO_MENU_INDEX = APP_COUNT };
 static const char *DEMO_NVS_NAMESPACE = "pin_demo";
 static const char *DEMO_NVS_KEY = "active";
 
@@ -50,21 +48,38 @@ static SemaphoreHandle_t display_done;
 typedef struct {
     const char *name;
     const char *hint;
-    esp_partition_subtype_t subtype;
+    const char *label;
+    char shortcut;
     uint16_t color;
 } app_entry_t;
 
-static const app_entry_t apps[APP_COUNT] = {
-    {"CONWAY", "GAME OF LIFE", ESP_PARTITION_SUBTYPE_APP_OTA_0, 0x07ff},
-    {"FLUID", "MOTION WATER", ESP_PARTITION_SUBTYPE_APP_OTA_1, 0x04ff},
-    {"MISO", "WOODLAND PET", ESP_PARTITION_SUBTYPE_APP_OTA_2, 0xffe0},
-    {"LUMEN", "STARFIELD", ESP_PARTITION_SUBTYPE_APP_OTA_3, 0xf81f},
-    {"DUNGEON", "SEED CRAWLER", ESP_PARTITION_SUBTYPE_APP_OTA_4, 0x07f0},
-    {"3D MAZE", "CLASSIC WALK", ESP_PARTITION_SUBTYPE_APP_OTA_5, 0xfd20},
-    {"WAYFARER", "PIXEL HAULER", ESP_PARTITION_SUBTYPE_APP_OTA_6, 0xffdf},
-    {"3 BODY", "GRAVITY LAB", ESP_PARTITION_SUBTYPE_APP_OTA_7, 0xfdae},
-    {"CRT", "BOOT TERMINAL", ESP_PARTITION_SUBTYPE_APP_OTA_8, 0x07f0},
+static const app_entry_t catalog[APP_COUNT] = {
+    {"CONWAY", "GAME OF LIFE", "conways", '1', 0x07ff},
+    {"FLUID", "MOTION WATER", "fluid", '2', 0x04ff},
+    {"MISO", "WOODLAND PET", "miso", '3', 0xffe0},
+    {"LUMEN", "STARFIELD", "lumen", '4', 0xf81f},
+    {"DUNGEON", "SEED CRAWLER", "dungeon", '5', 0x07f0},
+    {"3D MAZE", "CLASSIC WALK", "maze", '6', 0xfd20},
+    {"WAYFARER", "PIXEL HAULER", "wayfarer", '7', 0xffdf},
+    {"3 BODY", "GRAVITY LAB", "threebody", '8', 0xfdae},
+    {"CRT", "BOOT TERMINAL", "crt", '9', 0x07f0},
 };
+
+static app_entry_t apps[APP_COUNT];
+static unsigned app_count;
+
+static void discover_apps(void)
+{
+    for (unsigned i = 0; i < APP_COUNT; ++i) {
+        const esp_partition_t *partition = esp_partition_find_first(
+            ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, catalog[i].label);
+        if (partition && partition->subtype >= ESP_PARTITION_SUBTYPE_APP_OTA_0 &&
+            partition->subtype < ESP_PARTITION_SUBTYPE_APP_OTA_MAX) {
+            apps[app_count++] = catalog[i];
+        }
+    }
+    ESP_LOGI(TAG, "Found %u installed apps", app_count);
+}
 
 // Waveshare landscape initialization: RGB565 over QSPI.
 static const sh8601_lcd_init_cmd_t panel_init[] = {
@@ -183,8 +198,10 @@ static void draw_menu(esp_lcd_panel_handle_t panel, uint16_t *strip, unsigned se
         text(strip, y0, 28, 9, "PIN LIBRARY", 0xffff, 2);
         text(strip, y0, 30, 32, "SHORT PRESS SELECT", 0x8410, 1);
         text(strip, y0, 30, 43, "HOLD BOOT TO START", 0x8410, 1);
-        text(strip, y0, 400, 32, selected < 8 ? "PAGE 1 OF 2" : "PAGE 2 OF 2", 0x8410, 1);
-        for (unsigned i = 0; i < APP_COUNT; ++i) {
+        text(strip, y0, 400, 32,
+             app_count < 8 ? "PAGE 1 OF 1" : (selected < 8 ? "PAGE 1 OF 2" : "PAGE 2 OF 2"), 0x8410,
+             1);
+        for (unsigned i = 0; i < app_count; ++i) {
             const unsigned page_start = selected < 8 ? 0 : 8;
             if (i < page_start || i >= page_start + 8) {
                 continue;
@@ -203,10 +220,11 @@ static void draw_menu(esp_lcd_panel_handle_t panel, uint16_t *strip, unsigned se
             text(strip, y0, 34, row, apps[i].name, ink, 2);
             text(strip, y0, 180, row + 5, apps[i].hint, 0xbdf7, 1);
         }
-        if (selected >= 8) {
-            const int row = 54 + (APP_COUNT - 8) * 22;
-            const uint16_t ink = selected == DEMO_MENU_INDEX ? 0xffe0 : 0x7bef;
-            if (selected == DEMO_MENU_INDEX) {
+        if (app_count && (app_count < 8 || selected >= 8)) {
+            const unsigned page_start = selected < 8 ? 0 : 8;
+            const int row = 54 + (app_count - page_start) * 22;
+            const uint16_t ink = selected == app_count ? 0xffe0 : 0x7bef;
+            if (selected == app_count) {
                 for (int yy = row - 3; yy < row + 20; ++yy) {
                     if (yy >= y0 && yy < y0 + STRIP_ROWS) {
                         for (int xx = 18; xx < 518; ++xx) {
@@ -216,7 +234,11 @@ static void draw_menu(esp_lcd_panel_handle_t panel, uint16_t *strip, unsigned se
                 }
             }
             text(strip, y0, 34, row, "DEMO", ink, 2);
-            text(strip, y0, 180, row + 5, "5 MINUTES EACH - ALL APPS", 0xbdf7, 1);
+            text(strip, y0, 180, row + 5, "5 MINUTES EACH - INSTALLED APPS", 0xbdf7, 1);
+        }
+        if (!app_count) {
+            text(strip, y0, 34, 80, "NO APPS INSTALLED", 0xffff, 2);
+            text(strip, y0, 34, 110, "INSTALL APPS WITH THE WEB FLASHER", 0xbdf7, 1);
         }
         ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel, 0, y0, LCD_WIDTH, y0 + STRIP_ROWS, strip));
         ESP_ERROR_CHECK(
@@ -233,6 +255,9 @@ static void wait_for_boot_release(void)
 
 static void launch(unsigned selected, bool from_button, bool demo_mode)
 {
+    if (selected >= app_count) {
+        return;
+    }
     if (from_button) {
         wait_for_boot_release();
     }
@@ -243,8 +268,8 @@ static void launch(unsigned selected, bool from_button, bool demo_mode)
     ESP_ERROR_CHECK(nvs_set_u8(handle, DEMO_NVS_KEY, demo_mode ? 1 : 0));
     ESP_ERROR_CHECK(nvs_commit(handle));
     nvs_close(handle);
-    const esp_partition_t *partition =
-        esp_partition_find_first(ESP_PARTITION_TYPE_APP, apps[selected].subtype, NULL);
+    const esp_partition_t *partition = esp_partition_find_first(
+        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, apps[selected].label);
     ESP_ERROR_CHECK(partition ? ESP_OK : ESP_ERR_NOT_FOUND);
     ESP_LOGI(TAG, "Starting %s from %s at 0x%lx", apps[selected].name, partition->label,
              (unsigned long)partition->address);
@@ -271,6 +296,7 @@ void app_main(void)
     ESP_ERROR_CHECK(gpio_config(&button));
     usb_serial_jtag_driver_config_t usb = {.tx_buffer_size = 8192, .rx_buffer_size = 8192};
     ESP_ERROR_CHECK(usb_serial_jtag_driver_install(&usb));
+    discover_apps();
     sdcard_init();
     esp_lcd_panel_handle_t panel = display_open();
     uint16_t *strip = heap_caps_malloc(LCD_WIDTH * STRIP_ROWS * sizeof(uint16_t),
@@ -280,10 +306,8 @@ void app_main(void)
     unsigned selected = 0;
     int64_t down_at = 0;
     bool was_down = false;
-    ESP_LOGI(
-        TAG,
-        "READY: press 1-9, D for demo, or short-press BOOT; "
-        "hold BOOT to start");
+    ESP_LOGI(TAG, "READY: press 1-9, D for demo, or short-press BOOT; "
+                  "hold BOOT to start");
     while (true) {
         uint8_t input[256];
         int input_count = usb_serial_jtag_read_bytes(input, sizeof(input), 0);
@@ -292,11 +316,15 @@ void app_main(void)
                 continue;
             }
             if (input[i] >= '1' && input[i] <= '9') {
-                selected = (unsigned)(input[i] - '1');
-                draw_menu(panel, strip, selected);
-                launch(selected, false, false);
-            } else if (input[i] == 'd' || input[i] == 'D') {
-                selected = DEMO_MENU_INDEX;
+                for (unsigned j = 0; j < app_count; ++j) {
+                    if (apps[j].shortcut == input[i]) {
+                        selected = j;
+                        draw_menu(panel, strip, selected);
+                        launch(selected, false, false);
+                    }
+                }
+            } else if (app_count && (input[i] == 'd' || input[i] == 'D')) {
+                selected = app_count;
                 draw_menu(panel, strip, selected);
                 launch_demo();
             }
@@ -306,15 +334,15 @@ void app_main(void)
         if (down && !was_down) {
             down_at = now;
         }
-        if (down && down_at && now - down_at >= 700000) {
-            if (selected == DEMO_MENU_INDEX) {
+        if (app_count && down && down_at && now - down_at >= 700000) {
+            if (selected == app_count) {
                 launch_demo();
             } else {
                 launch(selected, true, false);
             }
         }
         if (!down && was_down && down_at && now - down_at >= 30000 && now - down_at < 700000) {
-            selected = (selected + 1) % MENU_COUNT;
+            selected = app_count ? (selected + 1) % (app_count + 1) : 0;
             draw_menu(panel, strip, selected);
         }
         was_down = down;

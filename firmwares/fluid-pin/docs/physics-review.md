@@ -1,9 +1,11 @@
 # Physics review — 2026-09-28
 
+[English](physics-review.md) · [Español](physics-review.es.md)
+
 These notes describe the solver's separating wall boundaries and density/color
 reconstruction. Host checks cover conservation, wall release and settling.
-Earlier device captures verified scheduling; visual checks of the idle pool and
-backpack walking remain pending.
+Earlier device captures verified scheduling. The physical checks recorded below
+were completed on 2026-10-03.
 
 ## Why water lingered at walls
 
@@ -174,8 +176,9 @@ boundary correction. Upright scale remains 18 cells/m, with the existing
 vertical assist. Pitch tests still check against spurious upward launches.
 
 The six-axis IMU cannot uniquely distinguish all combinations of slow tilt and
-translation. Real backpack walking and the user's wall-release motions remain
-required device checks. Synthetic traces verify direction, response, and bounds;
+translation. At this review's original date, real walking and the user's
+wall-release motions still required device checks. Synthetic traces verify
+direction, response, and bounds;
 they cannot establish the feel on the worn pin.
 
 ## Performance
@@ -211,27 +214,27 @@ scheduling overhead. The sensor-controlled build was restored after this test.
 After the thin-row correction, a fresh sensor-controlled capture again kept all
 573 particles, mass ratio 1.00000, and zero resets. Internal free memory stayed
 at 134,780 bytes. That capture was mostly stationary; it establishes timing for
-the revised gather but does not confirm the user's rapid-rotation experience.
+the revised gather but does not establish the user's rapid-rotation experience.
 
 The idle rendering correction's capture contains 59 complete performance
 windows. Physics stayed at 60.03 Hz and the IMU at 125 Hz; all particles and
 render mass remained conserved, with zero resets and 134,268 bytes of free
 internal memory. Display throughput is about 1.2 FPS lower than the preceding
 capture because of the extra reconstruction pass. Its visual improvement on
-the physical display still needs user confirmation.
+the physical display was subsequently confirmed in the check below.
 
 The subsequent interior color correction recovered display throughput to
 59.84 FPS. Its 60 performance windows kept physics at 60.03 Hz, all 573 particles,
 mass ratio 1.00000, and zero resets. Free internal memory stayed at 145,788 bytes.
 The capture verifies device scheduling and memory after simplifying the color
-lookup; physical review of the idle dark band remains pending.
+lookup; the idle dark band was subsequently checked as recorded below.
 
 Telemetry logs solver phase costs, maximum step time, memory, resets, sensor
 values, fluid centroid, and mean fluid velocity. The autonomous stress sequence
-establishes performance under load; physical walking and wall-release
-check is still required to establish the intended feel.
+establishes performance under load. The physical check below covers visible
+motion and wall release on the connected board.
 
-## Validation and remaining gates
+## Host validation
 
 The latest host runs measured 96–99% of the expected `g*dt` impulse on the first
 step away from each wall. Displacement at 200 ms was 1.33–1.35 cells, and speed
@@ -253,8 +256,9 @@ display pixels on average, peaking at 37%, relative to a stationary control.
 - Two 30-minute simulated soaks: mixed axis translation and repeated strong
   impulses, with mass and reset checks.
 - Undefined-behavior instrumentation with trap mode passed boundary, shake, and
-  core solver tests. AddressSanitizer could not link because this environment
-  lacks its runtime library.
+  core solver tests. AddressSanitizer could not link at this review's original
+  date; the full suite subsequently passed with both sanitizers, as recorded in
+  the [repository validation](../../../documentation/REPOSITORY_VALIDATION.md).
 - ESP-IDF firmware build and image-size checks.
 
 The settled-wall visual tests now start from a settled pool and use
@@ -262,5 +266,15 @@ acceleration-based bounds. The former early-displacement assertions required
 the artificial instantaneous centroid kick; they were replaced alongside the
 stronger four-wall impulse/acceleration tests.
 
-Outstanding: confirm the idle rendering correction and visible backpack walking
-on the physical pin. Production release remains pending those checks.
+## Physical check — 2026-10-03
+
+The current sensor-controlled firmware was installed on the connected Waveshare
+ESP32-S3-Touch-AMOLED-1.91. The user checked the physical display and reported
+that all three checks passed: settled water had no dark holes or V-shaped band,
+water released promptly when tilted, and carrying the board as if walking
+produced visible motion. This closes the physical checks left pending in the
+2026-09-28 review; it is an observation on this board, not a measurement of
+every possible worn orientation.
+
+A separate serial capture confirmed that a Fluid-only installation ignored an
+omitted app shortcut and restarted Fluid after the five-minute Demo interval.

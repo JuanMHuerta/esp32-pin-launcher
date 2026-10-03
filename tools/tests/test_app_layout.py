@@ -85,7 +85,7 @@ class LayoutTests(unittest.TestCase):
         path.parent.mkdir(parents=True)
         path.write_bytes(data)
         layout.check_layout(self.root, entries, compiled=True)
-        # Corrupt a app address while leaving the CSV correct.
+        # Corrupt an app address while leaving the CSV correct.
         struct.pack_into("<I", data, 3 * 32 + 4, 0xA0000)
         path.write_bytes(data)
         with self.assertRaisesRegex(ValueError, "Compiled partition table is stale"):

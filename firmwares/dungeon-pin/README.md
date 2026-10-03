@@ -1,5 +1,7 @@
 # DUNGEON//SEED
 
+[English](README.md) · [Español](README.es.md)
+
 An autonomous old-school first-person dungeon animation for the 536×240
 Waveshare ESP32-S3-Touch-AMOLED-1.91. Built to watch from a distance: monsters, held weapons and a full-height world.
 
@@ -97,3 +99,6 @@ Host previews verify composition/motion; physical display appearance still
 requires viewing the board.
 
 Historical device checks are in [app validation](../../documentation/APP_VALIDATION.md).
+
+OTA subtypes above describe the full collection. Browser-selected installs assign
+consecutive subtypes; USB shortcuts keep their app identities.

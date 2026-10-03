@@ -1,5 +1,7 @@
 # Documentation
 
+[English](README.md) · [Español](README.es.md)
+
 Start with the [project README](../README.md) for installation and controls.
 
 | Document | Purpose |
@@ -8,6 +10,7 @@ Start with the [project README](../README.md) for installation and controls.
 | [Hardware validation ledger](WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION.md) | Primary sources and revision-specific findings |
 | [Device lessons](ESP32_DEVICE_LESSONS.md) | Reusable hardware observations |
 | [SD file guide](SD_CARD_FILE_TOOL.md) | USB file client, framing and operations |
+| [Web flasher](WEB_FLASHER.md) | App selection, browser USB installation and GitHub Pages publishing |
 | [Repository validation](REPOSITORY_VALIDATION.md) | Current host, build and publication checks |
 | [Flash layout validation](FLASH_LAYOUT_VALIDATION.md) | Historical allocation and boot checks |
 | [Scene validation](SCENE_VALIDATION.md) | Historical Three Body and CRT checks |

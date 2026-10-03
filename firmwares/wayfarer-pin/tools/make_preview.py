@@ -26,7 +26,9 @@ def main() -> None:
     parser.add_argument("--fps", type=int, default=15)
     parser.add_argument("--variant", type=int, default=0)
     parser.add_argument("--seed", type=lambda x: int(x, 0), default=0x81D2A93B)
-    parser.add_argument("--showcase", action="store_true", help="follow continuous arrivals, encounters and jumps")
+    parser.add_argument(
+        "--showcase", action="store_true", help="follow continuous arrivals, encounters and jumps"
+    )
     parser.add_argument(
         "--event",
         type=int,

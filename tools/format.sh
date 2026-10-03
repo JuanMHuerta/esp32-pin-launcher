@@ -14,7 +14,7 @@ from pathlib import Path
 import sys
 for directory in ['common', 'main', 'firmwares', 'tools']:
     for path in sorted(Path(directory).rglob('*')):
-        if path.suffix not in ('.c', '.h') or path.name.startswith('assets_generated.'):
+        if path.suffix not in ('.c', '.h') or path.name.startswith(('assets_generated.', 'exterior_generated.')):
             continue
         if any(part in ('build', 'managed_components', 'artifacts', '.source-git-metadata')
                or part.startswith('build-') for part in path.parts):

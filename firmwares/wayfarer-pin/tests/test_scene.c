@@ -23,10 +23,10 @@ static void test_random_event_schedule(void)
         wayfarer_scene_update(&first, time, false);
         wayfarer_scene_update(&second, time, false);
         assert(memcmp(&first, &second, sizeof(first)) == 0);
-        if (first.event==WAYFARER_EVENT_WARP &&
-            time-first.event_started_ms>=first.event_duration_ms-150) {
-            for (unsigned i=0;i<WAYFARER_BODY_CAPACITY;++i) {
-                assert(!wayfarer_scene_project_body(&first,&first.bodies[i],time).visible);
+        if (first.event == WAYFARER_EVENT_WARP &&
+            time - first.event_started_ms >= first.event_duration_ms - 150) {
+            for (unsigned i = 0; i < WAYFARER_BODY_CAPACITY; ++i) {
+                assert(!wayfarer_scene_project_body(&first, &first.bodies[i], time).visible);
             }
         }
         if (first.event != WAYFARER_EVENT_NONE) {
@@ -36,14 +36,21 @@ static void test_random_event_schedule(void)
             }
             if (first.event_started_ms != last_start) {
                 if (last_start != UINT32_MAX) {
-                    if (last == WAYFARER_EVENT_WARP) { assert(first.event == WAYFARER_EVENT_PLANET); }
-                    else if (last != WAYFARER_EVENT_PLANET) { assert(first.event == WAYFARER_EVENT_WARP); }
-                    else { assert(first.event != WAYFARER_EVENT_PLANET && first.event != WAYFARER_EVENT_WARP); }
+                    if (last == WAYFARER_EVENT_WARP) {
+                        assert(first.event == WAYFARER_EVENT_PLANET);
+                    } else if (last != WAYFARER_EVENT_PLANET) {
+                        assert(first.event == WAYFARER_EVENT_WARP);
+                    } else {
+                        assert(first.event != WAYFARER_EVENT_PLANET &&
+                               first.event != WAYFARER_EVENT_WARP);
+                    }
                 }
                 if (locals & (1U << first.event)) {
                     assert(!(bag & (1U << first.event)));
                     bag |= 1U << first.event;
-                    if (bag == locals) { bag = 0; }
+                    if (bag == locals) {
+                        bag = 0;
+                    }
                 }
                 last = first.event;
                 last_start = first.event_started_ms;
@@ -65,7 +72,8 @@ static void test_render_consistency_and_bounds(void)
             for (int direction = -1; direction <= 1; direction += 2) {
                 wayfarer_scene_t scene;
                 wayfarer_scene_init(&scene, 0x155aa551U);
-                wayfarer_scene_begin_event(&scene,(uint8_t)event,0,8000,(uint8_t)variant,direction);
+                wayfarer_scene_begin_event(&scene, (uint8_t)event, 0, 8000, (uint8_t)variant,
+                                           direction);
                 scene.next_event_ms = 3600000;
                 wayfarer_scene_update(&scene, 4000, true);
                 wayfarer_scene_render_strip(&scene, background, 4000, 0, WAYFARER_HEIGHT, whole);
@@ -100,50 +108,53 @@ static void test_render_consistency_and_bounds(void)
 static void test_approach_persistence_and_departure(void)
 {
     wayfarer_scene_t scene;
-    wayfarer_scene_init(&scene,25);
-    scene.event=WAYFARER_EVENT_NONE;
-    scene.next_event_ms=3600000;
-    wayfarer_body_t *planet=&scene.bodies[0];
-    planet->x=240; planet->y=-55;
-    wayfarer_scene_update(&scene,1500,false);
-    wayfarer_projection_t far=wayfarer_scene_project_body(&scene,planet,1500);
-    wayfarer_scene_update(&scene,15000,false);
-    wayfarer_projection_t near=wayfarer_scene_project_body(&scene,planet,15000);
-    assert(near.visible && near.width>far.width && near.x>far.x && near.y<far.y);
-    wayfarer_body_t snapshot=*planet;
-    wayfarer_scene_begin_event(&scene,WAYFARER_EVENT_TRAFFIC,15000,12000,4,-1);
-    assert(memcmp(planet,&snapshot,sizeof(snapshot))==0);
-    wayfarer_projection_t after=wayfarer_scene_project_body(&scene,planet,15000);
-    assert(after.x==near.x && after.y==near.y && after.width==near.width);
-    wayfarer_scene_begin_event(&scene,WAYFARER_EVENT_WARP,15000,8000,2,1);
-    assert(memcmp(planet,&snapshot,sizeof(snapshot))==0);
-    wayfarer_scene_update(&scene,15900,false);
-    after=wayfarer_scene_project_body(&scene,planet,15900);
-    assert(after.width>near.width && after.x>near.x);
-    for (unsigned t=16000;t<=22600;t+=100) { wayfarer_scene_update(&scene,t,false); }
-    assert(!wayfarer_scene_project_body(&scene,planet,22600).visible);
-    uint32_t leg=scene.leg;
-    wayfarer_scene_update(&scene,23000,false);
-    assert(scene.leg==leg+1);
-    assert(scene.bodies[0].type==WAYFARER_BODY_WORLD);
-    assert(scene.bodies[0].born_ms==23000);
-    assert(wayfarer_scene_project_body(&scene,&scene.bodies[0],23000).width<far.width+8);
+    wayfarer_scene_init(&scene, 25);
+    scene.event = WAYFARER_EVENT_NONE;
+    scene.next_event_ms = 3600000;
+    wayfarer_body_t *planet = &scene.bodies[0];
+    planet->x = 240;
+    planet->y = -55;
+    wayfarer_scene_update(&scene, 1500, false);
+    wayfarer_projection_t far = wayfarer_scene_project_body(&scene, planet, 1500);
+    wayfarer_scene_update(&scene, 15000, false);
+    wayfarer_projection_t near = wayfarer_scene_project_body(&scene, planet, 15000);
+    assert(near.visible && near.width > far.width && near.x > far.x && near.y < far.y);
+    wayfarer_body_t snapshot = *planet;
+    wayfarer_scene_begin_event(&scene, WAYFARER_EVENT_TRAFFIC, 15000, 12000, 4, -1);
+    assert(memcmp(planet, &snapshot, sizeof(snapshot)) == 0);
+    wayfarer_projection_t after = wayfarer_scene_project_body(&scene, planet, 15000);
+    assert(after.x == near.x && after.y == near.y && after.width == near.width);
+    wayfarer_scene_begin_event(&scene, WAYFARER_EVENT_WARP, 15000, 8000, 2, 1);
+    assert(memcmp(planet, &snapshot, sizeof(snapshot)) == 0);
+    wayfarer_scene_update(&scene, 15900, false);
+    after = wayfarer_scene_project_body(&scene, planet, 15900);
+    assert(after.width > near.width && after.x > near.x);
+    for (unsigned t = 16000; t <= 22600; t += 100) {
+        wayfarer_scene_update(&scene, t, false);
+    }
+    assert(!wayfarer_scene_project_body(&scene, planet, 22600).visible);
+    uint32_t leg = scene.leg;
+    wayfarer_scene_update(&scene, 23000, false);
+    assert(scene.leg == leg + 1);
+    assert(scene.bodies[0].type == WAYFARER_BODY_WORLD);
+    assert(scene.bodies[0].born_ms == 23000);
+    assert(wayfarer_scene_project_body(&scene, &scene.bodies[0], 23000).width < far.width + 8);
 }
 
 static void test_varied_ship_trajectories(void)
 {
-    unsigned quadrants=0;
-    for (unsigned variant=0;variant<16;++variant) {
+    unsigned quadrants = 0;
+    for (unsigned variant = 0; variant < 16; ++variant) {
         wayfarer_scene_t scene;
-        wayfarer_scene_init(&scene,25);
-        memset(scene.bodies,0,sizeof(scene.bodies));
-        wayfarer_scene_begin_event(&scene,WAYFARER_EVENT_TRAFFIC,0,12000,(uint8_t)variant,1);
-        const wayfarer_body_t *ship=&scene.bodies[0];
-        assert(ship->type==WAYFARER_BODY_SHIP && ship->vy!=0);
-        quadrants|=1U<<((ship->vx>0?1:0)+(ship->vy>0?2:0));
-        assert(ship->angle!=0 && ship->angle!=32);
+        wayfarer_scene_init(&scene, 25);
+        memset(scene.bodies, 0, sizeof(scene.bodies));
+        wayfarer_scene_begin_event(&scene, WAYFARER_EVENT_TRAFFIC, 0, 12000, (uint8_t)variant, 1);
+        const wayfarer_body_t *ship = &scene.bodies[0];
+        assert(ship->type == WAYFARER_BODY_SHIP && ship->vy != 0);
+        quadrants |= 1U << ((ship->vx > 0 ? 1 : 0) + (ship->vy > 0 ? 2 : 0));
+        assert(ship->angle != 0 && ship->angle != 32);
     }
-    assert(quadrants==15);
+    assert(quadrants == 15);
 }
 
 static void test_lighting_motion_and_partial_tiles(void)
@@ -162,8 +173,8 @@ static void test_lighting_motion_and_partial_tiles(void)
                 continue;
             }
             cabin_changes += whole[i] != strips[i];
-            unsigned original = (background[i] >> 11) + ((background[i] >> 5) & 63) +
-                                (background[i] & 31);
+            unsigned original =
+                (background[i] >> 11) + ((background[i] >> 5) & 63) + (background[i] & 31);
             unsigned shaded = (whole[i] >> 11) + ((whole[i] >> 5) & 63) + (whole[i] & 31);
             darker_material += shaded + 4 < original;
         }
@@ -176,8 +187,7 @@ static void test_lighting_motion_and_partial_tiles(void)
         if (rows > 31) {
             rows = 31;
         }
-        wayfarer_scene_render_strip(&scene, background, 1000, y, rows,
-                                    strips + y * WAYFARER_WIDTH);
+        wayfarer_scene_render_strip(&scene, background, 1000, y, rows, strips + y * WAYFARER_WIDTH);
     }
     assert(memcmp(whole, strips, sizeof(whole)) == 0);
 }

@@ -1,5 +1,7 @@
 # SD card file tool
 
+[English](SD_CARD_FILE_TOOL.md) · [Español](SD_CARD_FILE_TOOL.es.md)
+
 The launcher exposes its mounted microSD card over USB Serial/JTAG.
 Use the Python client to inspect or copy files without removing the card.
 
@@ -32,8 +34,9 @@ python3 tools/sdcard.py --port /dev/ttyACM0 info
 python3 tools/sdcard.py --port /dev/ttyACM0 list /
 ```
 
-Flashing the launcher is sufficient for file-tool work. Do not reflash all
-app applications unless the task also requires it.
+Flashing the launcher is sufficient for file-tool work when the partition layout
+is unchanged. If image growth moves a boundary, use the root script to reinstall
+the table and all images together.
 
 ## Host commands
 
@@ -84,7 +87,7 @@ uses Waveshare's `VersionControl_V2` SDMMC 1-bit example:
 This mapping coexists with the SH8601 display and avoids the display clock on
 GPIO47. Do not apply it to another board revision or a different Waveshare
 SKU without checking the board contract, ledger, and the vendor example for
-that hardware.
+that hardware. Silicon revision alone does not identify a PCB revision.
 
 The mount path is `/sd`, and mounting uses `format_if_mount_failed=false`.
 Changing the SD bus, pins, FATFS settings, or display relationship is a

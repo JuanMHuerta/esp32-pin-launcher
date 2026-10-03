@@ -1,4 +1,8 @@
-# Multi Pin Launcher
+# ESP32 Pin Launcher
+
+[English](README.md) · [Español](README.es.md)
+
+[![Checks](https://github.com/JuanMHuerta/esp32-pin-launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/JuanMHuerta/esp32-pin-launcher/actions/workflows/ci.yml)
 
 Nine games and animated scenes for the Waveshare ESP32-S3-Touch-AMOLED-1.91
 (SKU 28596). A small launcher selects which app to boot. Each app runs from its
@@ -10,8 +14,8 @@ no phone or network connection is required.
 ## Apps
 
 These GIFs are host previews made with the firmware's C renderers. Fluid uses
-simulated tilt; Miso receives scripted interactions. They show the rendered
-frames, not recordings of the physical display.
+simulated tilt; Miso shows scripted poses and an accelerated day/night cycle.
+They show the rendered frames, not recordings of the physical display.
 
 | Conway | Fluid | Miso |
 | --- | --- | --- |
@@ -39,24 +43,31 @@ SH8601-compatible QSPI display path. PSRAM is not required.
 Read the [board contract](documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.md)
 before changing pins, display initialization or sensors. The
 [hardware validation ledger](documentation/WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION.md)
-records sources and board-specific observations. SD support uses the configuration tested on this project's board; confirm
-the mapping before using another hardware revision.
+records sources and board-specific observations. SD support uses the configuration
+tested on this project's board; confirm the mapping before using another revision.
 
 ## Build and install
+
+For browser installation, the [one-page web flasher](documentation/WEB_FLASHER.md)
+lets users choose apps and install over USB. The launcher menu and Demo mode
+are included and follow the installed selection. It is ready to be published
+as a static GitHub Pages site; see the guide for local preview and publishing.
 
 Use ESP-IDF **5.5.x**; the dependency locks were generated with **5.5.1**.
 Install the ESP32-S3 toolchain using the
 [ESP-IDF setup guide](https://docs.espressif.com/projects/esp-idf/en/v5.5.1/esp32s3/get-started/index.html).
 The scripts require Bash 5+, Python 3 and the tools provided by ESP-IDF.
-From the repository root:
+Clone the project and activate ESP-IDF:
 
 ```sh
+git clone https://github.com/JuanMHuerta/esp32-pin-launcher.git
+cd esp32-pin-launcher
 source /path/to/esp-idf/export.sh
 ./build-and-flash.sh --build-only
 ./build-and-flash.sh /dev/ttyACM0
 ```
 
-Replace `/dev/ttyACM0` with your board's serial port. The second command builds,
+Replace `/dev/ttyACM0` with your board's serial port. The final command builds,
 installs and verifies the launcher and all nine apps, then clears the OTA boot
 selection. Reset the board to open the launcher. For ROM download mode, hold
 BOOT, press and release RESET, then release BOOT.
@@ -81,7 +92,7 @@ return to the launcher.
 
 USB Serial/JTAG provides the same selection:
 
-| Command | App | Partition |
+| Command | App | Partition in the full collection |
 | --- | --- | --- |
 | `1` | Conway | `ota_0` |
 | `2` | Fluid | `ota_1` |
@@ -92,9 +103,12 @@ USB Serial/JTAG provides the same selection:
 | `7` | Wayfarer | `ota_6` |
 | `8` | Three Body | `ota_7` |
 | `9` | CRT | `ota_8` |
-| `D` | Demo: each app runs for five minutes, repeating | — |
+| `D` | Demo: each installed app runs for five minutes, repeating | — |
 
 Holding BOOT in Demo stops the rotation and returns to the launcher.
+With a browser-selected collection, only installed apps appear in the menu.
+USB shortcuts retain the identities above; omitted apps are ignored.
+Browser selections assign consecutive OTA subtypes to the installed apps.
 
 ## Development
 
@@ -140,5 +154,5 @@ path limits and the binary protocol.
 
 Project code, documentation and artwork are licensed under the
 [GNU General Public License v3.0](LICENSE), `GPL-3.0-only`.
-Copyright © 2026 Multi Pin Launcher contributors.
+Copyright © 2026 ESP32 Pin Launcher contributors.
 Third-party dependencies retain their own licenses; see [NOTICE.md](NOTICE.md).

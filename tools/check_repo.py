@@ -8,6 +8,8 @@ import subprocess
 import sys
 from urllib.parse import unquote, urlsplit
 
+from PIL import Image
+
 import app_layout
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,31 +37,71 @@ def main():
                 local = unquote(target.split("#", 1)[0])
                 if local and not (path.parent / local).exists():
                     errors.append(f"{path.relative_to(ROOT)}: missing link target {target}")
-        if path.suffix in (".c", ".h", ".py", ".sh"):
+        if path.suffix in (".c", ".h", ".py", ".sh", ".js", ".mjs", ".css", ".html"):
             if "SPDX-License-Identifier: GPL-3.0-only" not in path.read_text():
                 errors.append(f"{path.relative_to(ROOT)}: missing SPDX license identifier")
         if path.stat().st_size >= 50 * 1024 * 1024:
             errors.append(f"{path.relative_to(ROOT)}: file is too large for a normal Git checkout")
-    readme = (ROOT / "README.md").read_text()
+    for guide in (
+        "README",
+        "CONTRIBUTING",
+        "NOTICE",
+        "documentation/README",
+        "documentation/SD_CARD_FILE_TOOL",
+        "documentation/WEB_FLASHER",
+        "documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91",
+        "documentation/WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION",
+        "documentation/ESP32_DEVICE_LESSONS",
+        "documentation/REPOSITORY_VALIDATION",
+        "documentation/FLASH_LAYOUT_VALIDATION",
+        "documentation/SCENE_VALIDATION",
+        "documentation/APP_VALIDATION",
+        "documentation/APP_IDEAS",
+        "firmwares/dungeon-pin/assets/ART_DIRECTION",
+        "firmwares/wayfarer-pin/assets/ART_DIRECTION",
+    ):
+        for suffix in (".md", ".es.md"):
+            if not (ROOT / (guide + suffix)).is_file():
+                errors.append(f"{guide + suffix}: missing language version")
     menu = (ROOT / "main/main.c").read_text()
-    subtypes = re.findall(r"ESP_PARTITION_SUBTYPE_APP_(OTA_\d+)", menu)
-    expected = [image[1].upper() for image in app_layout.IMAGES[1:]]
-    if subtypes != expected:
-        errors.append("Launcher menu OTA order differs from the flash layout")
-    switcher = (ROOT / "common/app_switcher.c").read_text()
-    for source, name in [(menu, "APP_COUNT"), (switcher, "DEMO_APP_COUNT")]:
-        match = re.search(r"\b" + name + r"\s*=\s*(\d+)", source)
-        if not match or int(match[1]) != len(APPS):
-            errors.append(f"{name} does not match the number of apps")
-    for app in APPS:
-        if not re.search(r"firmwares/" + re.escape(app) + r"/[^)]+\.gif", readme):
-            errors.append(f"README.md: no GIF for {app}")
-        if not (ROOT / "firmwares" / app / "README.md").is_file():
-            errors.append(f"{app}: missing README")
+    catalog = re.findall(r"\{\"[^\"\n]+\", \"[^\"\n]+\", \"([^\"\n]+)\", '([1-9])',", menu)
+    expected = [(image[0], str(index)) for index, image in enumerate(app_layout.IMAGES[1:], 1)]
+    if catalog != expected:
+        errors.append("Launcher catalog order or shortcuts differ from the flash layout")
+    match = re.search(r"\bAPP_COUNT\s*=\s*(\d+)", menu)
+    if not match or int(match[1]) != len(APPS):
+        errors.append("APP_COUNT does not match the number of apps")
+    previews = set()
+    for suffix in (".md", ".es.md"):
+        readme_path = ROOT / ("README" + suffix)
+        if not readme_path.is_file():
+            continue
+        readme = readme_path.read_text()
+        for app in APPS:
+            matches = re.findall(r"firmwares/" + re.escape(app) + r"/[^)]+\.gif", readme)
+            if not matches:
+                errors.append(f"{readme_path.name}: no GIF for {app}")
+            previews.update(matches)
+            if not (ROOT / "firmwares" / app / ("README" + suffix)).is_file():
+                errors.append(f"{app}: missing README{suffix}")
+    for preview in sorted(previews):
+        try:
+            with Image.open(ROOT / preview) as gif:
+                if gif.size != (536, 240) or gif.n_frames < 2:
+                    errors.append(f"{preview}: expected animated 536 × 240 preview")
+                for frame in range(gif.n_frames):
+                    gif.seek(frame)
+                    if gif.info.get("duration", 0) <= 0:
+                        errors.append(f"{preview}: frame {frame} has no playback duration")
+                        break
+        except (OSError, ValueError) as error:
+            errors.append(f"{preview}: {error}")
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print("Repository checks passed: local links, app GIFs, licenses and file sizes.")
+    print(
+        "Repository checks passed: bilingual guides, links, animated app GIFs, licenses and sizes."
+    )
     return 0
 
 

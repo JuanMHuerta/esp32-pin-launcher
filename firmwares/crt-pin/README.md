@@ -1,5 +1,7 @@
 # CRT / ATLAS VT-220
 
+[English](README.md) · [Español](README.es.md)
+
 A fictional orbital station boots and logs in once, then keeps its Unix-style
 console running indefinitely. An 817-event playlist lasts about 5 minutes
 18 seconds before repeating, with six continuous workflows:
@@ -86,3 +88,6 @@ Animated previews: [station operations](preview-0.gif),
 [maintenance in amber](preview-1.gif), [relay telemetry](preview-2.gif),
 [network diagnostics](preview-3.gif), [archives](preview-4.gif),
 [signal diagnostics](preview-5.gif). These use the device's actual C renderer.
+
+OTA subtypes above describe the full collection. Browser-selected installs assign
+consecutive subtypes; USB shortcuts keep their app identities.

@@ -1,5 +1,7 @@
 # App ideas
 
+[English](APP_IDEAS.md) · [Español](APP_IDEAS.es.md)
+
 The current collection contains Conway, Fluid, Miso, Lumen, Dungeon, Maze,
 Wayfarer, Three Body and CRT. New apps should add a different visual or interaction,
 rather than duplicate an existing scene.

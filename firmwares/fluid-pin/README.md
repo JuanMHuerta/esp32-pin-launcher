@@ -1,5 +1,7 @@
 # Fluid
 
+[English](README.md) · [Español](README.es.md)
+
 A 2D PIC/FLIP water simulation that responds to tilt and motion. A 38 × 18
 staggered grid and 573 particles drive a 67 × 30 image, rendered as 8 × 8 pixel
 tiles on the display. The QMI8658C supplies acceleration and rotation.

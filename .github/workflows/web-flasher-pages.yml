@@ -1,0 +1,57 @@
+name: Publish web flasher
+
+# Run manually when ready to publish. Select GitHub Actions under Settings → Pages.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container: espressif/idf:v5.5.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and package firmware
+        shell: bash
+        run: |
+          source /opt/esp/idf/export.sh
+          ./build-and-flash.sh --build-only
+          python3 tools/package_web_firmware.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Check and bundle the static site
+        working-directory: web
+        shell: bash
+        run: |
+          source /opt/esp/idf/export.sh
+          npm ci
+          npm run format:check
+          npm test
+          npm run test:release
+          npm run build
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -34,9 +34,11 @@ int main(int argc, char **argv)
     wayfarer_scene_t scene;
     wayfarer_scene_init(&scene, (uint32_t)strtoul(argv[7], NULL, 10));
     if (event >= 0) {
-        if (event==WAYFARER_EVENT_PLANET) { scene.bodies[0].model=(uint8_t)(atoi(argv[6])%6); }
-        wayfarer_scene_begin_event(&scene,(uint8_t)event,0,frame_count*1000/fps+1,
-                                    (uint8_t)atoi(argv[6]),1);
+        if (event == WAYFARER_EVENT_PLANET) {
+            scene.bodies[0].model = (uint8_t)(atoi(argv[6]) % 6);
+        }
+        wayfarer_scene_begin_event(&scene, (uint8_t)event, 0, frame_count * 1000 / fps + 1,
+                                   (uint8_t)atoi(argv[6]), 1);
         scene.next_event_ms = 3600000;
     }
     for (uint32_t index = 0; index < frame_count; ++index) {

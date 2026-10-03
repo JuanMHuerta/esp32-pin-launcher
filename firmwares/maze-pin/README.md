@@ -1,5 +1,7 @@
 # 3D MAZE
 
+[English](README.md) · [Español](README.es.md)
+
 An autoplaying, redrawn tribute to the classic Windows 3D Maze screensaver for the
 Waveshare ESP32-S3 Touch AMOLED 1.91. It renders at 268×120 and scales to 536×240.
 Short BOOT presses have no action; hold BOOT for 1.5 seconds to return to the launcher.
@@ -37,3 +39,6 @@ collisions, repeatable runs, exits, frame-rate independence, occlusion and
 rendering bounds. Use the root [build script](../../build-and-flash.sh) to install
 the collection. Maze occupies `ota_5`; its address comes from `partitions.csv`.
 Historical device results are in [app validation](../../documentation/APP_VALIDATION.md).
+
+OTA subtypes above describe the full collection. Browser-selected installs assign
+consecutive subtypes; USB shortcuts keep their app identities.

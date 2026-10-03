@@ -1,5 +1,7 @@
 # Agent contract: Waveshare ESP32-S3-Touch-AMOLED-1.91 (SKU 28596)
 
+[English](AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.md) · [Español](AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.es.md)
+
 Validated: 2026-10-01. Scope: **SKU 28596**, ESP-IDF. Load `WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION.md` only when disputing a fact, changing versions, or touching SD/controller details.
 
 ## 1. Non-negotiable rules

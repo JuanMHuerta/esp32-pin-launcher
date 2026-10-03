@@ -1,5 +1,7 @@
 # Validation ledger: Waveshare ESP32-S3-Touch-AMOLED-1.91 (SKU 28596)
 
+[English](WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION.md) · [Español](WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION.es.md)
+
 Validated: 2026-10-01. Purpose: source lookup/conflict resolution. Normal agents should load the smaller `AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.md` only.
 
 ## Authority order

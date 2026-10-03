@@ -14,15 +14,20 @@ int main(int argc, char **argv)
     }
     pet_t pet;
     pet_init(&pet, 42);
-    pet_set_state(&pet, PET_WAVE, 1800);
+    static const pet_state_t showcase[] = {PET_WAVE,  PET_GROOM,   PET_DANCE,  PET_LOOK,
+                                           PET_SLEEP, PET_STRETCH, PET_BALANCE};
+    unsigned prior = PET_STATE_COUNT;
     for (unsigned frame = 0; frame < frames; ++frame) {
-        if (frame == 3 * fps) {
-            pet_event(&pet, PET_TAP, (int)pet.x, 30);
+        unsigned scene = frame * (sizeof(showcase) / sizeof(showcase[0])) / frames;
+        if (scene != prior) {
+            pet_set_state(&pet, showcase[scene], 600000);
+            prior = scene;
         }
-        if (frame == 6 * fps) {
-            pet_event(&pet, PET_TAP, 110, 30);
-        }
-        pet_set_tilt(&pet, 0.15f * sinf((float)frame / fps));
+        // Compress a six-minute cycle for the README; poses use real frame time.
+        pet.uptime_ms = (uint64_t)frame * PET_DAY_MS / frames;
+        pet_set_tilt(&pet, showcase[scene] == PET_BALANCE
+                               ? .75f + .2f * sinf((float)frame / fps * 1.5f)
+                               : 0);
         pet_paint(&pet, pixels);
         if (!preview_write(pixels, PET_W * PET_H)) {
             return 3;

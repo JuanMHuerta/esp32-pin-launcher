@@ -17,7 +17,6 @@ enum {
     BOOT_BUTTON = 0,
     RETURN_HOLD_US = 1500000,
     DEMO_DURATION_US = 5 * 60 * 1000000,
-    DEMO_APP_COUNT = 9,
 };
 static const char *TAG = "app_switcher";
 static const char *DEMO_NVS_NAMESPACE = "pin_demo";
@@ -71,8 +70,14 @@ static bool demo_launch_next(void)
         demo_mode_clear();
         return false;
     }
+    const unsigned count = esp_ota_get_app_partition_count();
     const unsigned current = running->subtype - ESP_PARTITION_SUBTYPE_APP_OTA_0;
-    const unsigned next = (current + 1) % DEMO_APP_COUNT;
+    if (!count || current >= count) {
+        ESP_LOGE(TAG, "Invalid installed app count for demo rotation");
+        demo_mode_clear();
+        return false;
+    }
+    const unsigned next = (current + 1) % count;
     const esp_partition_t *partition = esp_partition_find_first(
         ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0 + next, NULL);
     if (!partition || esp_ota_set_boot_partition(partition) != ESP_OK) {
@@ -120,7 +125,8 @@ static void return_to_launcher(void *context)
             ESP_LOGE(TAG, "Cannot select factory launcher");
             pressed_at = now;
         }
-        if (demo_mode && now - demo_started_at >= DEMO_DURATION_US && !demo_launch_next()) {
+        if (demo_mode && !down && now - demo_started_at >= DEMO_DURATION_US &&
+            !demo_launch_next()) {
             demo_mode = false;
         }
         was_down = down;

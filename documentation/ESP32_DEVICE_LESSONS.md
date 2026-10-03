@@ -1,5 +1,7 @@
 # ESP32 device lessons
 
+[English](ESP32_DEVICE_LESSONS.md) · [Español](ESP32_DEVICE_LESSONS.es.md)
+
 Reusable hardware and sensor findings for the Waveshare
 ESP32-S3-Touch-AMOLED-1.91 (SKU 28596). Keep project behavior and application
 settings out of this file. The [board agent contract](AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.md)

@@ -15,6 +15,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci && npm run format:check && npm test
+        working-directory: web
+      - run: npx playwright install --with-deps chromium && npm run test:browser
+        working-directory: web
       - run: python -m pip install -r requirements-dev.txt
       - run: ./tools/test.sh
         env:
@@ -34,3 +43,19 @@ jobs:
         run: |
           source /opt/esp/idf/export.sh
           ./build-and-flash.sh --build-only
+          python3 tools/package_web_firmware.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate and bundle the firmware release
+        shell: bash
+        run: |
+          source /opt/esp/idf/export.sh
+          npm ci
+          npm run test:release
+          npm run build
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-flasher
+          path: web/dist

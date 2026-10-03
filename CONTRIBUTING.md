@@ -1,5 +1,7 @@
 # Contributing
 
+[English](CONTRIBUTING.md) · [Español](CONTRIBUTING.es.md)
+
 Use ESP-IDF 5.5.x and keep the display component pinned to the version in
 `main/idf_component.yml`. Read the [board contract](documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.md)
 before changing hardware-facing code. Hardware details and observations belong
@@ -14,11 +16,15 @@ in the shared documentation, rather than separate copies in each app.
 | `firmwares/` | Independently buildable apps, their assets and host tests |
 | `tools/` | Build layout, previews, host tests and serial clients |
 | `documentation/` | Board constraints, protocol and validation records |
+| `web/` | Static USB flasher, release build and browser tests |
 
 Most apps separate simulation and painting from their ESP-IDF entry point.
 Keep that boundary so behavior and rendering can be checked without hardware.
 Generated asset arrays should be rebuilt from the PNG sources rather than
 edited by hand.
+
+Keep the English and Spanish READMEs and user guides in sync. Use direct
+descriptions of behavior and keep app names, commands and protocol fields intact.
 
 ## Checks
 
@@ -32,6 +38,10 @@ ruff format --check .
 ./tools/format.sh --check
 ./build-and-flash.sh --build-only
 ```
+
+For the web flasher, run `npm ci`, `npm test`, `npm run format:check` and
+`npm run test:browser` inside `web/`. See the
+[flasher guide](documentation/WEB_FLASHER.md) for packaging and previewing a release.
 
 C checks use warnings as errors. `SANITIZERS=address,undefined ./tools/test.sh`
 adds sanitizer checks when the compiler runtimes are installed.
@@ -79,9 +89,10 @@ firmware. Keep the README images small enough to load comfortably on GitHub.
 
 Add an ESP-IDF project under `firmwares/` with `sdkconfig.defaults`, a pinned
 component manifest, a README and a host test. Link `common/app_switcher.c` so a
-BOOT hold returns to the launcher. Add the app to the menu in `main/main.c`,
-update the demo count in `common/app_switcher.c`, and register its image in
-`tools/app_layout.py`. Keep menu order, OTA subtypes and USB shortcuts aligned.
+BOOT hold returns to the launcher. Add the app to the catalog in `main/main.c`
+and register its image in `tools/app_layout.py` and its presentation in
+`tools/package_web_firmware.py` and `web/src/i18n.js`. Demo discovers the installed
+OTA partitions. Keep menu order, OTA subtypes and USB shortcuts aligned.
 Add its test to `tools/test.sh` and a renderer-produced GIF to the README.
 
 Rebuild every image before generating a new layout. If partition boundaries

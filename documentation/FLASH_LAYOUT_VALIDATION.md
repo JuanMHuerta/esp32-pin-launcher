@@ -1,5 +1,7 @@
 # Minimum app flash allocation — 2026-10-02
 
+[English](FLASH_LAYOUT_VALIDATION.md) · [Español](FLASH_LAYOUT_VALIDATION.es.md)
+
 Historical record: this predates MECH removal and the current nine-app menu.
 Offsets, subtypes and shortcut numbers below describe the tested layout only.
 

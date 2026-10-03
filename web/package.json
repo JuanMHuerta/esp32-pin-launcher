@@ -1,0 +1,22 @@
+{
+    "name": "esp32-pin-web-flasher",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "build": "node build.mjs",
+        "test": "node --test tests/*.test.mjs",
+        "test:browser": "playwright test",
+        "test:release": "node tests/check-release.mjs"
+    },
+    "dependencies": {
+        "esptool-js": "0.7.0",
+        "spark-md5": "3.0.2"
+    },
+    "devDependencies": {
+        "@playwright/test": "1.63.0",
+        "esbuild": "0.25.12",
+        "prettier": "3.6.2"
+    }
+}
