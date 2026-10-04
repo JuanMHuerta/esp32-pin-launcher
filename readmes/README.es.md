@@ -1,6 +1,6 @@
 # ESP32 Pin Launcher
 
-[English](README.md) · [Español](README.es.md)
+[English](../README.md) · [Español](README.es.md)
 
 [![Checks](https://github.com/JuanMHuerta/esp32-pin-launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/JuanMHuerta/esp32-pin-launcher/actions/workflows/ci.yml)
 
@@ -20,17 +20,17 @@ física.
 
 | Conway | Fluid | Miso |
 | --- | --- | --- |
-| [![Juego de la vida de Conway](firmwares/conways-pin/preview.gif)](firmwares/conways-pin/README.es.md) | [![Agua que responde a la inclinación](firmwares/fluid-pin/preview.gif)](firmwares/fluid-pin/README.es.md) | [![Miso en el bosque](firmwares/pet-pin/preview.gif)](firmwares/pet-pin/README.es.md) |
+| [![Juego de la vida de Conway](../firmwares/conways-pin/preview.gif)](../firmwares/conways-pin/README.es.md) | [![Agua que responde a la inclinación](../firmwares/fluid-pin/preview.gif)](../firmwares/fluid-pin/README.es.md) | [![Miso en el bosque](../firmwares/pet-pin/preview.gif)](../firmwares/pet-pin/README.es.md) |
 | Juego de la vida con patrones que se colocan al tocar. | Simulación de agua con partículas y control por movimiento. | Una mascota que reacciona al tacto, la inclinación y las sacudidas suaves. |
 
 | Lumen | Dungeon | 3D Maze |
 | --- | --- | --- |
-| [![Vuelo entre constelaciones](firmwares/render-pin/preview.gif)](firmwares/render-pin/README.es.md) | [![Exploración y combate en una mazmorra](firmwares/dungeon-pin/preview-combat.gif)](firmwares/dungeon-pin/README.es.md) | [![Exploración automática de un laberinto](firmwares/maze-pin/preview.gif)](firmwares/maze-pin/README.es.md) |
+| [![Vuelo entre constelaciones](../firmwares/render-pin/preview.gif)](../firmwares/render-pin/README.es.md) | [![Exploración y combate en una mazmorra](../firmwares/dungeon-pin/preview-combat.gif)](../firmwares/dungeon-pin/README.es.md) | [![Exploración automática de un laberinto](../firmwares/maze-pin/preview.gif)](../firmwares/maze-pin/README.es.md) |
 | Un campo de estrellas controlado por movimiento y tacto. | Un recorrido autónomo en primera persona con combates. | Un laberinto generado que se explora siguiendo la pared derecha. |
 
 | Wayfarer | Three Body | CRT |
 | --- | --- | --- |
-| [![Cabina de una nave y tráfico espacial](firmwares/wayfarer-pin/preview.gif)](firmwares/wayfarer-pin/README.es.md) | [![Tres soles luminosos y sus estelas orbitales](firmwares/three-body-pin/preview-0.gif)](firmwares/three-body-pin/README.es.md) | [![Consola de una estación orbital ficticia](firmwares/crt-pin/preview-0.gif)](firmwares/crt-pin/README.es.md) |
+| [![Cabina de una nave y tráfico espacial](../firmwares/wayfarer-pin/preview.gif)](../firmwares/wayfarer-pin/README.es.md) | [![Tres soles luminosos y sus estelas orbitales](../firmwares/three-body-pin/preview-0.gif)](../firmwares/three-body-pin/README.es.md) | [![Consola de una estación orbital ficticia](../firmwares/crt-pin/preview-0.gif)](../firmwares/crt-pin/README.es.md) |
 | Una cabina de pixel art con mundos, tráfico e iluminación cambiante. | Ocho encuentros gravitatorios de tres soles en un campo de estrellas. | Una terminal programada con brillo de fósforo y líneas de barrido. |
 
 Cada vista enlaza a los controles, la implementación y los comandos de desarrollo
@@ -43,8 +43,8 @@ horizontal de 536 × 240, un controlador táctil FT3168 y una IMU QMI8658C.
 Las apps usan RGB565 y la interfaz QSPI compatible con SH8601. No requieren PSRAM.
 
 Antes de cambiar pines, sensores o la inicialización de pantalla, consultá el
-[contrato de la placa](documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.es.md)
-y las [fuentes y observaciones de hardware](documentation/WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION.es.md).
+[contrato de la placa](../documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.es.md)
+y las [fuentes y observaciones de hardware](../documentation/WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91_VALIDATION.es.md).
 El soporte SD usa la configuración probada en la placa de este proyecto;
 comprobá el mapeo antes de usar otra revisión de hardware.
 
@@ -53,7 +53,7 @@ comprobá el mapeo antes de usar otra revisión de hardware.
 El [instalador web](https://juanmhuerta.github.io/esp32-pin-launcher/) permite elegir apps e
 instalarlas por USB desde el navegador. El menú y el modo Demo se incluyen
 siempre y usan la selección instalada. La
-[guía del instalador](documentation/WEB_FLASHER.es.md) explica cómo probar el
+[guía del instalador](../documentation/WEB_FLASHER.es.md) explica cómo probar el
 sitio localmente y publicarlo en GitHub Pages.
 
 Usá ESP-IDF **5.5.x**; los archivos de dependencias se generaron con **5.5.1**.
@@ -139,7 +139,7 @@ dispone de las bibliotecas necesarias.
 
 [CONTRIBUTING.es.md](CONTRIBUTING.es.md) explica la estructura del código,
 el formato, la generación de vistas y las pruebas de hardware. Los
-[registros de validación](documentation/README.es.md) conservan las mediciones
+[registros de validación](../documentation/README.es.md) conservan las mediciones
 históricas; sus direcciones antiguas no son instrucciones de instalación.
 
 ## Archivos en la tarjeta SD
@@ -155,12 +155,12 @@ python3 tools/sdcard.py --port /dev/ttyACM0 put assets /assets
 python3 tools/sdcard.py --port /dev/ttyACM0 get /assets ./downloaded-assets
 ```
 
-La [guía SD](documentation/SD_CARD_FILE_TOOL.es.md) describe los comandos,
+La [guía SD](../documentation/SD_CARD_FILE_TOOL.es.md) describe los comandos,
 límites de rutas y protocolo binario.
 
 ## Licencia
 
 El código, la documentación y el arte del proyecto usan la
-[GNU General Public License v3.0](LICENSE), `GPL-3.0-only`.
+[GNU General Public License v3.0](../LICENSE), `GPL-3.0-only`.
 Copyright © 2026 ESP32 Pin Launcher contributors.
 Las dependencias conservan sus propias licencias; consultá [NOTICE.es.md](NOTICE.es.md).

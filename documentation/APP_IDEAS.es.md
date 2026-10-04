@@ -27,4 +27,4 @@ sin red obligatoria y con actividad sin intervención. Reservá BOOT durante
 Las apps existentes tienen renderizadores portables y ejemplos de tacto e IMU.
 El servicio SD pertenece al menú: una app que cargue o guarde datos necesita su
 propia integración SD comprobada para la revisión. Seguí
-[CONTRIBUTING.es.md](../CONTRIBUTING.es.md) para registrar una app nueva.
+[CONTRIBUTING.es.md](../readmes/CONTRIBUTING.es.md) para registrar una app nueva.

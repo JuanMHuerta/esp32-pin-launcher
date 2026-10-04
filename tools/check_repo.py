@@ -61,8 +61,11 @@ def main():
         "firmwares/wayfarer-pin/assets/ART_DIRECTION",
     ):
         for suffix in (".md", ".es.md"):
-            if not (ROOT / (guide + suffix)).is_file():
-                errors.append(f"{guide + suffix}: missing language version")
+            path = guide + suffix
+            if suffix == ".es.md" and guide in ("README", "CONTRIBUTING", "NOTICE"):
+                path = f"readmes/{path}"
+            if not (ROOT / path).is_file():
+                errors.append(f"{path}: missing language version")
     menu = (ROOT / "main/main.c").read_text()
     catalog = re.findall(r"\{\"[^\"\n]+\", \"[^\"\n]+\", \"([^\"\n]+)\", '([1-9])',", menu)
     expected = [(image[0], str(index)) for index, image in enumerate(app_layout.IMAGES[1:], 1)]
@@ -72,8 +75,11 @@ def main():
     if not match or int(match[1]) != len(APPS):
         errors.append("APP_COUNT does not match the number of apps")
     previews = set()
-    for suffix in (".md", ".es.md"):
-        readme_path = ROOT / ("README" + suffix)
+    for suffix, relative_path in (
+        (".md", "README.md"),
+        (".es.md", "readmes/README.es.md"),
+    ):
+        readme_path = ROOT / relative_path
         if not readme_path.is_file():
             continue
         readme = readme_path.read_text()

@@ -1,6 +1,6 @@
 # Licensing and asset sources
 
-[English](NOTICE.md) · [Español](NOTICE.es.md)
+[English](NOTICE.md) · [Español](readmes/NOTICE.es.md)
 
 ESP32 Pin Launcher code, documentation and repository artwork are distributed
 under GPL-3.0-only. The full license is in [LICENSE](LICENSE). Source files carry
