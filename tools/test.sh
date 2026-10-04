@@ -44,6 +44,10 @@ python3 -m unittest discover -s "$root_dir/tools/tests" -v
 "${CC:-cc}" "${flags[@]}" -I"$root_dir/common" \
     "$root_dir/tools/tests/test_gfx.c" "$root_dir/common/pin_gfx.c" -o "$work_dir/test-gfx"
 "$work_dir/test-gfx"
+"${CC:-cc}" "${flags[@]}" -I"$root_dir/main" \
+    "$root_dir/tools/tests/test_launcher_menu.c" "$root_dir/main/menu_render.c" \
+    -o "$work_dir/test-launcher-menu"
+"$work_dir/test-launcher-menu"
 
 for app in conways-pin fluid-pin pet-pin render-pin dungeon-pin maze-pin wayfarer-pin three-body-pin crt-pin; do
     if [[ "$selected" != all && "$selected" != "$app" ]]; then continue; fi

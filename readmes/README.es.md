@@ -13,10 +13,10 @@ en el ESP32; no hace falta un teléfono ni una red.
 
 ## Apps
 
-Estos GIFs se generan en la computadora con los renderizadores C del firmware.
-Fluid usa una inclinación simulada; Miso muestra poses programadas y un ciclo de
-día y noche acelerado. Son vistas del renderizado, no grabaciones de la pantalla
-física.
+Los GIFs de las apps y la vista del menú se generan en la computadora con código
+C del firmware. Fluid usa una inclinación simulada; Miso muestra poses
+programadas y un ciclo de día y noche acelerado. La grabación de Conway que
+aparece más abajo se hizo en la pantalla física.
 
 | Conway | Fluid | Miso |
 | --- | --- | --- |
@@ -35,6 +35,18 @@ física.
 
 Cada vista enlaza a los controles, la implementación y los comandos de desarrollo
 de la app.
+
+## Menú
+
+La vista recorre las apps instaladas y el modo Demo con la selección del menú.
+
+![Menú con la selección recorriendo las apps](../main/menu-preview.gif)
+
+## En el dispositivo
+
+Esta grabación muestra el juego de la vida de Conway en la pantalla Waveshare.
+
+![Juego de la vida de Conway en el dispositivo físico](../firmwares/conways-pin/device-demo.gif)
 
 ## Hardware
 

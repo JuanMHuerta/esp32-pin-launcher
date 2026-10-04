@@ -96,7 +96,7 @@ de imágenes razonable para que el README cargue con comodidad en GitHub.
 Creá un proyecto ESP-IDF en `firmwares/` con `sdkconfig.defaults`, dependencias
 fijadas, README en ambos idiomas y una prueba en la computadora. Enlazá
 `common/app_switcher.c` para volver al menú manteniendo BOOT. Registrá la app
-en el catálogo de `main/main.c`, su imagen en `tools/app_layout.py` y su
+en el catálogo de `main/menu_render.c`, su imagen en `tools/app_layout.py` y su
 presentación en `tools/package_web_firmware.py` y `web/src/i18n.js`.
 Demo descubre las particiones OTA instaladas. Mantené alineados el orden del
 menú, los subtipos OTA y los atajos USB. Agregá la prueba a `tools/test.sh` y un

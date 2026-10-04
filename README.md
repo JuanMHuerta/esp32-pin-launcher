@@ -13,9 +13,10 @@ no phone or network connection is required.
 
 ## Apps
 
-These GIFs are host previews made with the firmware's C renderers. Fluid uses
-simulated tilt; Miso shows scripted poses and an accelerated day/night cycle.
-They show the rendered frames, not recordings of the physical display.
+The app GIFs and launcher menu preview are rendered on the host with firmware C
+code. Fluid uses simulated tilt; Miso shows scripted poses and an accelerated
+day/night cycle. The Conway recording below was captured from the physical
+display.
 
 | Conway | Fluid | Miso |
 | --- | --- | --- |
@@ -33,6 +34,18 @@ They show the rendered frames, not recordings of the physical display.
 | A cozy pixel-art cockpit with moody lighting, detailed worlds and passing traffic. | Eight gravitational three-sun encounters across a field of stars. | A scripted terminal with phosphor glow and scanlines. |
 
 Click a preview for the app's controls, implementation and development commands.
+
+## Launcher menu
+
+The menu preview follows the selection through the installed apps and Demo mode.
+
+![Launcher menu with the selection moving through the apps](main/menu-preview.gif)
+
+## On the device
+
+This recording shows Conway's Game of Life running on the Waveshare display.
+
+![Conway's Game of Life running on the physical device](firmwares/conways-pin/device-demo.gif)
 
 ## Hardware
 

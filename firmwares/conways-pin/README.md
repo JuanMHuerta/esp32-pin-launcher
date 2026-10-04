@@ -9,6 +9,12 @@ enter periodically, and quiet worlds receive another glider after a delay.
 
 ![Game of Life](preview.gif)
 
+## On the device
+
+This recording shows Conway's Game of Life running on the Waveshare display.
+
+![Conway's Game of Life running on the physical device](device-demo.gif)
+
 Tap to place an R-pentomino, B-heptomino, Diehard or 3 × 3 square. Only the first
 touch-down places a pattern; holding or dragging does not paint a trail.
 Live cells are cyan, births flash white and deaths fade through magenta.
