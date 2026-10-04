@@ -29,8 +29,8 @@ They show the rendered frames, not recordings of the physical display.
 
 | Wayfarer | Three Body | CRT |
 | --- | --- | --- |
-| [![Spacecraft cockpit and passing traffic](firmwares/wayfarer-pin/preview.gif)](firmwares/wayfarer-pin/README.md) | [![Three gravitating bodies and orbit trails](firmwares/three-body-pin/preview-0.gif)](firmwares/three-body-pin/README.md) | [![Fictional orbital-station console](firmwares/crt-pin/preview-0.gif)](firmwares/crt-pin/README.md) |
-| A cozy pixel-art cockpit with moody lighting, detailed worlds and passing traffic. | Three-body gravity simulations with live diagnostics. | A scripted terminal with phosphor glow and scanlines. |
+| [![Spacecraft cockpit and passing traffic](firmwares/wayfarer-pin/preview.gif)](firmwares/wayfarer-pin/README.md) | [![Three luminous suns and glowing orbit trails](firmwares/three-body-pin/preview-0.gif)](firmwares/three-body-pin/README.md) | [![Fictional orbital-station console](firmwares/crt-pin/preview-0.gif)](firmwares/crt-pin/README.md) |
+| A cozy pixel-art cockpit with moody lighting, detailed worlds and passing traffic. | Eight gravitational three-sun encounters across a field of stars. | A scripted terminal with phosphor glow and scanlines. |
 
 Click a preview for the app's controls, implementation and development commands.
 

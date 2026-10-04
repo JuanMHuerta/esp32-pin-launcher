@@ -30,8 +30,8 @@ física.
 
 | Wayfarer | Three Body | CRT |
 | --- | --- | --- |
-| [![Cabina de una nave y tráfico espacial](firmwares/wayfarer-pin/preview.gif)](firmwares/wayfarer-pin/README.es.md) | [![Tres cuerpos y sus trayectorias gravitatorias](firmwares/three-body-pin/preview-0.gif)](firmwares/three-body-pin/README.es.md) | [![Consola de una estación orbital ficticia](firmwares/crt-pin/preview-0.gif)](firmwares/crt-pin/README.es.md) |
-| Una cabina de pixel art con mundos, tráfico e iluminación cambiante. | Simulaciones gravitatorias de tres cuerpos con datos en pantalla. | Una terminal programada con brillo de fósforo y líneas de barrido. |
+| [![Cabina de una nave y tráfico espacial](firmwares/wayfarer-pin/preview.gif)](firmwares/wayfarer-pin/README.es.md) | [![Tres soles luminosos y sus estelas orbitales](firmwares/three-body-pin/preview-0.gif)](firmwares/three-body-pin/README.es.md) | [![Consola de una estación orbital ficticia](firmwares/crt-pin/preview-0.gif)](firmwares/crt-pin/README.es.md) |
+| Una cabina de pixel art con mundos, tráfico e iluminación cambiante. | Ocho encuentros gravitatorios de tres soles en un campo de estrellas. | Una terminal programada con brillo de fósforo y líneas de barrido. |
 
 Cada vista enlaza a los controles, la implementación y los comandos de desarrollo
 de la app.
