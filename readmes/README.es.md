@@ -1,6 +1,4 @@
-# ESP32 Pin Launcher
-
-[English](../README.md) · [Español](README.es.md)
+# ESP32 Pin Launcher [![en](https://img.shields.io/badge/lang-en-red.svg)](../README.md) [![es](https://img.shields.io/badge/lang-es-yellow.svg)](README.es.md)
 
 [![Checks](https://github.com/JuanMHuerta/esp32-pin-launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/JuanMHuerta/esp32-pin-launcher/actions/workflows/ci.yml)
 
