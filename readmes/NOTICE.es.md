@@ -1,9 +1,9 @@
 # Licencias y origen de los recursos
 
-[English](NOTICE.md) · [Español](NOTICE.es.md)
+[English](../NOTICE.md) · [Español](NOTICE.es.md)
 
 El código, la documentación y el arte de ESP32 Pin Launcher se distribuyen bajo
-GPL-3.0-only. El texto completo está en [LICENSE](LICENSE). Los archivos fuente
+GPL-3.0-only. El texto completo está en [LICENSE](../LICENSE). Los archivos fuente
 incluyen identificadores SPDX; las tablas generadas heredan la licencia de sus
 fuentes.
 
@@ -23,7 +23,7 @@ de compilación.
 
 El instalador web incluye `esptool-js` 0.7.0 (Apache-2.0), `pako` 2.x (MIT y Zlib),
 `atob-lite` 2.x (MIT) y `spark-md5` 3.0.2 (MIT). Las versiones exactas están en
-[web/package-lock.json](web/package-lock.json). El JavaScript conserva los
+[web/package-lock.json](../web/package-lock.json). El JavaScript conserva los
 comentarios de licencia originales y el sitio incluye sus textos en
 `THIRD_PARTY_LICENSES.txt`.
 El empaquetador incluye licencias y avisos del firmware en
@@ -38,5 +38,5 @@ objetos se generan en C; no se incluyen el salvapantallas ni recursos de Microso
 Miso, Lumen, Conway, Fluid, Maze y CRT dibujan sus gráficos por procedimientos.
 Dungeon y Wayfarer incluyen arte generado con IA y procesado con las herramientas
 del repositorio, además de dibujo procedural. Se incluyen los PNG editables;
-consultá las notas de recursos de [Dungeon](firmwares/dungeon-pin/assets/ART_DIRECTION.es.md)
-y [Wayfarer](firmwares/wayfarer-pin/assets/ART_DIRECTION.es.md).
+consultá las notas de recursos de [Dungeon](../firmwares/dungeon-pin/assets/ART_DIRECTION.es.md)
+y [Wayfarer](../firmwares/wayfarer-pin/assets/ART_DIRECTION.es.md).

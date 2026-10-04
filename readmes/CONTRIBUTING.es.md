@@ -1,10 +1,10 @@
 # Contribuir
 
-[English](CONTRIBUTING.md) · [Español](CONTRIBUTING.es.md)
+[English](../CONTRIBUTING.md) · [Español](CONTRIBUTING.es.md)
 
 Usá ESP-IDF 5.5.x y conservá la versión del controlador de pantalla fijada en
 `main/idf_component.yml`. Antes de modificar código de hardware, leé el
-[contrato de la placa](documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.es.md).
+[contrato de la placa](../documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.es.md).
 Los detalles y las observaciones de hardware pertenecen a la documentación
 compartida, para evitar copias distintas en cada app.
 
@@ -42,7 +42,7 @@ ruff format --check .
 
 Para el instalador web, ejecutá `npm ci`, `npm test`, `npm run format:check` y
 `npm run test:browser` dentro de `web/`. La
-[guía del instalador](documentation/WEB_FLASHER.es.md) explica cómo empaquetar
+[guía del instalador](../documentation/WEB_FLASHER.es.md) explica cómo empaquetar
 y probar una versión.
 
 Las pruebas C tratan las advertencias como errores.
@@ -57,7 +57,7 @@ Los cambios de hardware necesitan pruebas en la placa compatible. Registrá
 placa y revisión, herramientas, comandos y resultados observados. Una vista
 generada en la computadora no comprueba los colores de la pantalla, la
 orientación táctil ni los sensores. Agregá una
-[lección de hardware](documentation/ESP32_DEVICE_LESSONS.es.md) sólo si aprendiste
+[lección de hardware](../documentation/ESP32_DEVICE_LESSONS.es.md) sólo si aprendiste
 algo nuevo y reutilizable.
 
 ## Formato y comentarios
@@ -104,7 +104,7 @@ GIF generado por el renderizador a ambos README.
 
 Compilá todas las imágenes antes de generar otra distribución. Si cambian las
 direcciones, instalá la tabla y todas las imágenes juntas. Para cambiar el
-servicio USB de archivos, consultá la [guía SD](documentation/SD_CARD_FILE_TOOL.es.md):
+servicio USB de archivos, consultá la [guía SD](../documentation/SD_CARD_FILE_TOOL.es.md):
 la implementación C, el cliente Python y el documento del protocolo deben coincidir.
 
 En un pull request, describí el comportamiento que cambió y las pruebas realizadas.

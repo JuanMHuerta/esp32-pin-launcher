@@ -2,11 +2,11 @@
 
 [English](README.md) · [Español](README.es.md)
 
-El [README del proyecto](../README.es.md) explica la instalación y los controles.
+El [README del proyecto](../readmes/README.es.md) explica la instalación y los controles.
 
 | Documento | Contenido |
 | --- | --- |
-| [Contribuir](../CONTRIBUTING.es.md) | Estructura, formato, pruebas y apps nuevas |
+| [Contribuir](../readmes/CONTRIBUTING.es.md) | Estructura, formato, pruebas y apps nuevas |
 | [Guía SD](SD_CARD_FILE_TOOL.es.md) | Cliente USB, operaciones y protocolo |
 | [Instalador web](WEB_FLASHER.es.md) | Selección de apps, instalación USB y GitHub Pages |
 | [Contrato de la placa](AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.es.md) | Pines, pantalla, DMA y reglas de hardware |

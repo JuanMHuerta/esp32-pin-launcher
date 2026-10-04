@@ -1,6 +1,6 @@
 # Contributing
 
-[English](CONTRIBUTING.md) · [Español](CONTRIBUTING.es.md)
+[English](CONTRIBUTING.md) · [Español](readmes/CONTRIBUTING.es.md)
 
 Use ESP-IDF 5.5.x and keep the display component pinned to the version in
 `main/idf_component.yml`. Read the [board contract](documentation/AGENTS_WAVESHARE_ESP32S3_TOUCH_AMOLED_1_91.md)
