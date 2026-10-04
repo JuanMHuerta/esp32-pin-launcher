@@ -191,3 +191,36 @@ all six workflows and their boundaries were covered by host tests.
 No new reusable device lesson was learned.
 
 Current CRT image SHA-256: 6c804715996e807c743f1d2bbe8bb002fcf1230bd89273865b9614b752694de9.
+
+
+## Three Body full-screen sequence — 2026-10-03
+
+Three Body now fills its landscape display with a star field, three large
+colored suns and luminous trails. The title, configuration name, body labels
+and bottom instructions are gone. A compact live-readings panel is hidden by
+default and toggles after a 700 ms screen hold. Eight gravitational starting
+configurations cycle for up to 65 seconds each; a body escaping beyond 6.4
+world units advances the sequence early. A short BOOT press still skips ahead.
+
+Host checks passed with strict C warnings for all eight starting states,
+figure-eight period return, momentum and energy conservation, finite camera
+scale, escape and time-limit transitions, repeated panel holds including the
+32-bit millisecond wrap, framebuffer bounds, and RGB565 display expansion.
+All eight PNG/GIF previews were regenerated from the firmware C renderer.
+Repository documentation/link/image checks passed. The packaged web release
+and all seven browser tests passed; the collection manifest description and
+both English and Spanish catalog text now match the animation.
+
+ESP-IDF 5.5.1 built the 307872-byte Three Body image. The full launcher and
+nine-app collection were flashed to the Waveshare SKU 28596, ESP32-S3 revision
+v0.2. Esptool verified the app image at `0x390000` (`ota_7`) against SHA-256
+`3e4202a5f987f51200c4f7850aea9cac746b03d82f0ad8b0a76f8fc75c865c99`.
+A 540-second USB run passed with 107 samples across all eight configurations,
+20.7–28.1 fps, 201564–202000 bytes free heap and no crash. Logged energy drift
+rounded to `0.0000000` in every sample. FT3168 interrupt input initialized at
+startup; the hold detector passed host checks, while a physical screen hold
+was not exercised during this run.
+
+Display initialization, transfer buffers and RGB565 conversion are unchanged.
+Touch uses the established board pins and IRQ/wake behavior documented in the
+board contract; no new board-wide finding was learned.

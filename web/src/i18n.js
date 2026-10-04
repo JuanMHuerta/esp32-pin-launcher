@@ -7,7 +7,8 @@ export const appDescriptionsEs = {
     dungeon: "Exploración y combate autónomos en una mazmorra.",
     maze: "Exploración en primera persona de un laberinto generado.",
     wayfarer: "Una cabina con mundos y tráfico espacial.",
-    threebody: "Tres cuerpos, gravedad y estelas orbitales.",
+    threebody:
+        "Ocho encuentros de tres soles luminosos, siempre en movimiento.",
     crt: "Una consola de estación ficticia con brillo de fósforo.",
 };
 

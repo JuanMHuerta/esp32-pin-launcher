@@ -1,36 +1,38 @@
-# THREE BODY / Gravity Lab
+# Three Body
 
 [English](README.md) · [Español](README.es.md)
 
-Three luminous suns gravitate around each other on a dark observatory display.
-Amber, cyan, and crimson trails show each body's recent path. The camera eases
-its zoom to follow the system; the sidebar shows mass, simulated time, total
-energy, and relative energy drift.
+Three luminous suns pull one another through a deep star field. Amber, cyan and
+rose light marks their recent paths. The display shows the animation without a
+title, labels or persistent text, so the motion fills the screen from across a
+room.
 
-The app cycles through three scenarios every 45 seconds:
+The sequence moves through eight initial configurations: **Figure eight**,
+**Chaotic suns**, **Binary visitor**, **Broken triangle**, **Long approach**,
+**Close encounter**, **Echo orbit** and **Solar crossing**. Each runs for up to
+65 seconds. It advances early if a sun escapes farther than 6.4 world units;
+bounded systems also move along after the time limit. The sequence then repeats
+with fresh trails and a smoothly adjusted view.
 
-- **Figure eight:** three equal point masses chase a periodic orbit. This uses
-  the published [Simó initial conditions](https://people.ucsc.edu/~rmont/Nbdy/NbdyB.html)
-  with Newtonian gravity, G=1, and no softening.
-- **Chaotic suns:** unequal masses exchange energy through close encounters.
-- **Binary visitor:** a lighter third sun approaches an orbiting pair.
+The first configuration uses the published [Simó initial
+conditions](https://people.ucsc.edu/~rmont/Nbdy/NbdyB.html) for the periodic
+figure-eight solution. The others explore unequal masses, rotating groups and
+close approaches. This is a planar Newtonian gravity study inspired by the
+three suns in *The Three-Body Problem*. It does not reproduce the book's
+fictional climate or model relativistic effects. Bodies follow the gravitational
+equations; there are no scripted paths, screen-wall reflections or orbit
+confinement. Fourth-order Runge–Kutta integration uses steps adapted to close
+encounters, with Plummer softening outside the figure-eight configuration.
 
-The latter two scenarios use Plummer softening (0.04 and 0.025 world units) to
-regularize close encounters. This is an illustrative, planar gravitational
-simulation inspired by the book's three suns. It does not reproduce the book's
-fictional planetary climate or model relativistic effects. Bodies are integrated
-with fourth-order Runge–Kutta and encounter-dependent steps bounded by free-fall
-and crossing times. There are no scripted paths, screen-wall reflections, or
-artificial orbit confinement. Escaping bodies cause the camera to zoom out.
-
-Tap **BOOT** to move to the next scenario. Hold **BOOT for 1.5 seconds**, then
-release it, to return to the launcher. Select the app with USB command
-**8** in the launcher. Its image occupies `ota_7`; the current
-offset and minimum 64 KiB block allocation are generated in the root `partitions.csv`.
+Hold anywhere on the screen for 0.7 seconds to show or hide the live mass,
+simulation-time and energy readings. A short **BOOT** press jumps to the next
+configuration. Hold **BOOT for 1.5 seconds**, then release, to return to the
+launcher. Select the app with USB command **8** in the launcher.
 
 The display uses the existing Waveshare landscape QSPI initialization and
 SH8601-compatible driver. A 268×120 RGB565 scene is expanded to 536×240 with
-internal DMA double buffers. Neither PSRAM nor SD storage is required.
+internal DMA double buffers. Touch uses the board's FT3168 controller. Neither
+PSRAM nor SD storage is required.
 
 From the repository root:
 
@@ -41,30 +43,29 @@ source /path/to/esp-idf/export.sh
 idf.py -C firmwares/three-body-pin build
 ```
 
-The host tests check one-period return for the figure eight, conservation of
-energy and momentum through all full-length scenarios, finite camera zoom,
-automatic switching, framebuffer boundaries, and display expansion/byte order.
-Set `SANITIZERS=address,undefined` when the host provides those runtimes.
+The host tests cover the figure-eight period, momentum and energy conservation,
+all eight configurations, escape and time-limit transitions, long-touch panel
+control, framebuffer boundaries, and display expansion and byte order. Set
+`SANITIZERS=address,undefined` when the host provides those runtimes.
 
-With the factory launcher running, check actual USB launch and sustained
-playback using:
+With the factory launcher running, check actual USB launch and all eight
+configurations using:
 
 ```sh
-python3 tools/check_app.py three-body-pin --seconds 140 --all-profiles
+python3 tools/check_app.py three-body-pin --seconds 540 --all-profiles
 ```
 
-The hardware check requires the launcher at startup; it launches the app,
-observes all three scenarios, and checks for crashes, low frame rate, heap drift
-and excessive energy drift.
-
-Use the root `build-and-flash.sh` to flash the multi-app layout. An app's
-standalone `idf.py flash` uses its standalone partition table, so it is unsuitable
-for adding just this image to an already-installed launcher.
+The hardware check observes runtime health, frame rate, heap stability and
+energy drift. Use the root `build-and-flash.sh` to flash the complete multi-app
+layout; an app's standalone `idf.py flash` uses its standalone partition table.
 
 ![Figure-eight orbit](preview-0.png)
 
-Animated previews: [figure eight](preview-0.gif), [chaotic suns](preview-1.gif),
-[binary visitor](preview-2.gif). These are generated by the firmware's C renderer.
+Animated previews, generated by the firmware's C renderer: [figure eight](preview-0.gif),
+[chaotic suns](preview-1.gif), [binary visitor](preview-2.gif),
+[broken triangle](preview-3.gif), [long approach](preview-4.gif),
+[close encounter](preview-5.gif), [echo orbit](preview-6.gif) and
+[solar crossing](preview-7.gif).
 
-OTA subtypes above describe the full collection. Browser-selected installs assign
-consecutive subtypes; USB shortcuts keep their app identities.
+OTA subtypes above describe the full collection. Browser-selected installs
+assign consecutive subtypes; USB shortcuts keep their app identities.

@@ -77,13 +77,13 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("app", choices=["three-body-pin", "crt-pin"])
     ap.add_argument(
-        "--preset", type=int, default=0, help="scenario: 0..2 for THREE BODY, 0..5 for CRT"
+        "--preset", type=int, default=0, help="scenario: 0..7 for THREE BODY, 0..5 for CRT"
     )
     ap.add_argument("--seconds", type=float, default=15)
     ap.add_argument("--fps", type=int, default=15)
     ap.add_argument("--start", type=float, default=0)
     args = ap.parse_args()
-    if args.preset not in range(3 if args.app == "three-body-pin" else 6):
+    if args.preset not in range(8 if args.app == "three-body-pin" else 6):
         ap.error("preset is outside the selected app scenario range")
     if (
         not math.isfinite(args.seconds)

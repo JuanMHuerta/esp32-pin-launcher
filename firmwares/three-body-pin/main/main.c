@@ -8,16 +8,20 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "touch_input.h"
 static uint16_t pixels[PIN_W * PIN_H];
 static orbit_t scene;
 void app_main(void)
 {
     app_switcher_init();
     pin_board_init();
+    touch_input_init();
     orbit_init(&scene, 0);
-    ESP_LOGI("three_body", "READY: three gravitating suns; BOOT next; hold BOOT for launcher");
+    ESP_LOGI("three_body",
+             "READY: eight gravitating systems; short BOOT next; hold screen for diagnostics");
     int64_t previous = esp_timer_get_time(), stats = previous, pressed = 0;
     bool was_down = pin_board_button();
+    bool screen_down = false;
     unsigned frames = 0;
     while (true) {
         int64_t now = esp_timer_get_time();
@@ -29,6 +33,8 @@ void app_main(void)
             orbit_next(&scene);
         }
         was_down = down;
+        touch_input_read(&screen_down);
+        orbit_touch(&scene, screen_down, (uint32_t)(now / 1000));
         orbit_step(&scene, (uint32_t)((now - previous) / 1000));
         previous = now;
         orbit_paint(&scene, pixels);

@@ -36,3 +36,39 @@ y heap estable de 157.904 bytes en las muestras finales. Las pruebas de la
 computadora cubrieron los seis flujos. Una interrupción USB y una línea serial
 incompleta limitaron los colectores; el registro original describe ambas.
 No se obtuvo una nueva lección reutilizable de hardware.
+
+
+## Three Body a pantalla completa — 2026-10-03
+
+Three Body ahora ocupa toda la pantalla horizontal con un campo de estrellas,
+tres soles grandes y estelas luminosas. Se quitaron el título, el nombre de la
+configuración, los rótulos de los cuerpos y las instrucciones inferiores. El
+panel con lecturas aparece tras mantener la pantalla 700 ms y se oculta igual.
+Ocho configuraciones gravitatorias duran hasta 65 segundos; la secuencia cambia
+antes si un cuerpo supera las 6,4 unidades. Una pulsación breve de BOOT sigue
+adelantando la escena.
+
+Las pruebas locales pasaron con advertencias estrictas de C. Cubren las ocho
+condiciones iniciales, el período de la figura en ocho, conservación del
+momento y la energía, zoom finito, cambios por escape y tiempo, mantener el
+panel, el desbordamiento del reloj de 32 bits, los límites del framebuffer y la
+expansión RGB565. Se regeneraron los ocho PNG y GIF con el renderizador C del
+firmware. También pasaron las comprobaciones de enlaces e imágenes del
+repositorio, la versión web empaquetada y sus siete pruebas de navegador. La
+descripción del catálogo web está actualizada en inglés y español.
+
+ESP-IDF 5.5.1 generó la imagen Three Body de 307872 bytes. Se instalaron el menú
+y las nueve apps en la Waveshare SKU 28596, ESP32-S3 revisión v0.2. Esptool
+verificó la app en `0x390000` (`ota_7`) con SHA-256
+`3e4202a5f987f51200c4f7850aea9cac746b03d82f0ad8b0a76f8fc75c865c99`.
+La prueba USB de 540 segundos pasó con 107 muestras que cubrieron las ocho
+configuraciones, 20,7–28,1 fps y 201564–202000 bytes libres. No hubo fallos y
+la deriva de energía se imprimió como `0.0000000` en todas las muestras. La
+entrada IRQ del FT3168 inició correctamente; el gesto de mantener la pantalla
+pasó las pruebas locales, aunque no se hizo una pulsación física durante esta
+ejecución.
+
+La inicialización de pantalla, los búferes de transferencia y la conversión
+RGB565 no cambiaron. El tacto usa los pines y el despertar por interrupción ya
+documentados en el contrato de placa; no se aprendió una regla nueva para la
+placa.

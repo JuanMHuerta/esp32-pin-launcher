@@ -54,7 +54,16 @@ def main():
     if args.all_profiles:
         if args.app == "three-body-pin":
             observed = {re.search(r"preset=(.*?) time=", line)[1] for line in samples}
-            required = {"FIGURE EIGHT", "CHAOTIC SUNS", "BINARY VISITOR"}
+            required = {
+                "FIGURE EIGHT",
+                "CHAOTIC SUNS",
+                "BINARY VISITOR",
+                "BROKEN TRIANGLE",
+                "LONG APPROACH",
+                "CLOSE ENCOUNTER",
+                "ECHO ORBIT",
+                "SOLAR CROSSING",
+            }
         else:
             observed = {int(re.search(r"profile=(\d+)", line)[1]) for line in samples}
             required = set(range(6))

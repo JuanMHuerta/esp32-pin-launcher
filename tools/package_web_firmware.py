@@ -22,7 +22,7 @@ APP_DETAILS = (
     ("Dungeon", "An autonomous dungeon crawl and combat.", "preview-combat.gif"),
     ("3D Maze", "Explore a freshly generated first-person maze.", "preview.gif"),
     ("Wayfarer", "A cozy cockpit with passing worlds and traffic.", "preview.gif"),
-    ("Three Body", "Three bodies, gravity, and glowing orbit trails.", "preview-0.gif"),
+    ("Three Body", "Eight luminous three-sun encounters, always in motion.", "preview-0.gif"),
     ("CRT", "A fictional station console in phosphor green.", "preview-0.gif"),
 )
 
