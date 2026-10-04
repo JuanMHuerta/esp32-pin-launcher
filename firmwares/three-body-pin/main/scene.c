@@ -331,8 +331,7 @@ static void background(uint16_t *p)
         for (int x = 0; x < PIN_W; x++) {
             int center_dx = x - 126, center_dy = y - 61;
             int turbulence = ((int)nebula_noise(x, y) - 128) / 3;
-            int cloud =
-                112 - center_dx * center_dx / 22 - center_dy * center_dy / 2 + turbulence;
+            int cloud = 112 - center_dx * center_dx / 22 - center_dy * center_dy / 2 + turbulence;
             int cloud2_dx = x - 194, cloud2_dy = y - 76;
             int cloud2 =
                 88 - cloud2_dx * cloud2_dx / 19 - cloud2_dy * cloud2_dy / 2 - turbulence / 2;
@@ -368,8 +367,7 @@ static void background(uint16_t *p)
         if (tier == 0 && (detail & 1) == 0) {
             int dx = (detail & 2) ? 1 : 0;
             int dy = dx ? 0 : 1;
-            p[(y + dy) * PIN_W + x + dx] =
-                add_light(p[(y + dy) * PIN_W + x + dx], star, 42);
+            p[(y + dy) * PIN_W + x + dx] = add_light(p[(y + dy) * PIN_W + x + dx], star, 42);
         }
     }
 }
