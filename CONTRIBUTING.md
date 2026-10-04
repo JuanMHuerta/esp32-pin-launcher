@@ -73,6 +73,7 @@ From the repository root:
 
 ```sh
 python3 tools/make_previews.py
+python3 tools/make_launcher_preview.py
 python3 firmwares/render-pin/tools/render_previews.py
 python3 firmwares/dungeon-pin/tools/make_preview.py
 python3 firmwares/wayfarer-pin/tools/make_preview.py
@@ -89,7 +90,7 @@ firmware. Keep the README images small enough to load comfortably on GitHub.
 
 Add an ESP-IDF project under `firmwares/` with `sdkconfig.defaults`, a pinned
 component manifest, a README and a host test. Link `common/app_switcher.c` so a
-BOOT hold returns to the launcher. Add the app to the catalog in `main/main.c`
+BOOT hold returns to the launcher. Add the app to the catalog in `main/menu_render.c`
 and register its image in `tools/app_layout.py` and its presentation in
 `tools/package_web_firmware.py` and `web/src/i18n.js`. Demo discovers the installed
 OTA partitions. Keep menu order, OTA subtypes and USB shortcuts aligned.

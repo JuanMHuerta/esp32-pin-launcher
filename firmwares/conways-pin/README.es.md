@@ -10,6 +10,12 @@ periódicamente y después de un tiempo sin actividad.
 
 ![Juego de la vida](preview.gif)
 
+## En el dispositivo
+
+Esta grabación muestra el juego de la vida de Conway en la pantalla Waveshare.
+
+![Juego de la vida de Conway en el dispositivo físico](device-demo.gif)
+
 Tocá la pantalla para colocar un R-pentominó, B-heptominó, Diehard o cuadrado de
 3 × 3. Sólo el comienzo del contacto coloca el patrón; mantener o arrastrar el
 dedo no deja un rastro. Las células vivas son cian, los nacimientos destellan en

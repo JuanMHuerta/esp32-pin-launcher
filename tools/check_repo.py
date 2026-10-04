@@ -66,14 +66,21 @@ def main():
                 path = f"readmes/{path}"
             if not (ROOT / path).is_file():
                 errors.append(f"{path}: missing language version")
-    menu = (ROOT / "main/main.c").read_text()
+    menu = (ROOT / "main/menu_render.c").read_text()
     catalog = re.findall(r"\{\"[^\"\n]+\", \"[^\"\n]+\", \"([^\"\n]+)\", '([1-9])',", menu)
     expected = [(image[0], str(index)) for index, image in enumerate(app_layout.IMAGES[1:], 1)]
     if catalog != expected:
         errors.append("Launcher catalog order or shortcuts differ from the flash layout")
-    match = re.search(r"\bAPP_COUNT\s*=\s*(\d+)", menu)
+    header = (ROOT / "main/menu_render.h").read_text()
+    match = re.search(r"\bLAUNCHER_MENU_APP_COUNT\s*=\s*(\d+)", header)
     if not match or int(match[1]) != len(APPS):
-        errors.append("APP_COUNT does not match the number of apps")
+        errors.append("LAUNCHER_MENU_APP_COUNT does not match the number of apps")
+    try:
+        with Image.open(ROOT / "main/menu-preview.gif") as preview:
+            if preview.size != (536, 240) or preview.n_frames != len(APPS) + 1:
+                errors.append("main/menu-preview.gif: expected one 536 × 240 frame per menu entry")
+    except (OSError, ValueError) as error:
+        errors.append(f"main/menu-preview.gif: {error}")
     previews = set()
     for suffix, relative_path in (
         (".md", "README.md"),
@@ -93,8 +100,11 @@ def main():
     for preview in sorted(previews):
         try:
             with Image.open(ROOT / preview) as gif:
-                if gif.size != (536, 240) or gif.n_frames < 2:
-                    errors.append(f"{preview}: expected animated 536 × 240 preview")
+                is_device_recording = Path(preview).name == "device-demo.gif"
+                if (not is_device_recording and gif.size != (536, 240)) or gif.n_frames < 2:
+                    errors.append(
+                        f"{preview}: expected an animated GIF with the expected dimensions"
+                    )
                 for frame in range(gif.n_frames):
                     gif.seek(frame)
                     if gif.info.get("duration", 0) <= 0:
@@ -105,9 +115,7 @@ def main():
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print(
-        "Repository checks passed: bilingual guides, links, animated app GIFs, licenses and sizes."
-    )
+    print("Repository checks passed: bilingual guides, links, animated GIFs, licenses and sizes.")
     return 0
 
 

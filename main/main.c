@@ -22,12 +22,13 @@
 #include "freertos/task.h"
 
 #include "esp_lcd_sh8601.h"
+#include "menu_render.h"
 #include "sdcard.h"
 
 enum {
-    LCD_WIDTH = 536,
-    LCD_HEIGHT = 240,
-    STRIP_ROWS = 30,
+    LCD_WIDTH = LAUNCHER_MENU_WIDTH,
+    LCD_HEIGHT = LAUNCHER_MENU_HEIGHT,
+    STRIP_ROWS = LAUNCHER_MENU_STRIP_ROWS,
     LCD_CS = 6,
     LCD_CLK = 47,
     LCD_D0 = 18,
@@ -36,7 +37,7 @@ enum {
     LCD_D3 = 5,
     LCD_RST = 17,
     BOOT_BUTTON = 0,
-    APP_COUNT = 9,
+    APP_COUNT = LAUNCHER_MENU_APP_COUNT,
 };
 
 static const char *DEMO_NVS_NAMESPACE = "pin_demo";
@@ -45,37 +46,17 @@ static const char *DEMO_NVS_KEY = "active";
 static const char *TAG = "pin_launcher";
 static SemaphoreHandle_t display_done;
 
-typedef struct {
-    const char *name;
-    const char *hint;
-    const char *label;
-    char shortcut;
-    uint16_t color;
-} app_entry_t;
-
-static const app_entry_t catalog[APP_COUNT] = {
-    {"CONWAY", "GAME OF LIFE", "conways", '1', 0x07ff},
-    {"FLUID", "MOTION WATER", "fluid", '2', 0x04ff},
-    {"MISO", "WOODLAND PET", "miso", '3', 0xffe0},
-    {"LUMEN", "STARFIELD", "lumen", '4', 0xf81f},
-    {"DUNGEON", "SEED CRAWLER", "dungeon", '5', 0x07f0},
-    {"3D MAZE", "CLASSIC WALK", "maze", '6', 0xfd20},
-    {"WAYFARER", "PIXEL HAULER", "wayfarer", '7', 0xffdf},
-    {"3 BODY", "GRAVITY LAB", "threebody", '8', 0xfdae},
-    {"CRT", "BOOT TERMINAL", "crt", '9', 0x07f0},
-};
-
-static app_entry_t apps[APP_COUNT];
+static launcher_menu_app_t apps[APP_COUNT];
 static unsigned app_count;
 
 static void discover_apps(void)
 {
     for (unsigned i = 0; i < APP_COUNT; ++i) {
         const esp_partition_t *partition = esp_partition_find_first(
-            ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, catalog[i].label);
+            ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_ANY, launcher_catalog[i].label);
         if (partition && partition->subtype >= ESP_PARTITION_SUBTYPE_APP_OTA_0 &&
             partition->subtype < ESP_PARTITION_SUBTYPE_APP_OTA_MAX) {
-            apps[app_count++] = catalog[i];
+            apps[app_count++] = launcher_catalog[i];
         }
     }
     ESP_LOGI(TAG, "Found %u installed apps", app_count);
@@ -135,111 +116,10 @@ static esp_lcd_panel_handle_t display_open(void)
     return panel;
 }
 
-static const uint8_t *glyph(char c)
-{
-    static const uint8_t space[] = {0, 0, 0, 0, 0, 0, 0};
-    static const uint8_t letters[][7] = {
-        {14, 17, 17, 31, 17, 17, 17}, {30, 17, 17, 30, 17, 17, 30}, {14, 17, 16, 16, 16, 17, 14},
-        {30, 17, 17, 17, 17, 17, 30}, {31, 16, 16, 30, 16, 16, 31}, {31, 16, 16, 30, 16, 16, 16},
-        {14, 17, 16, 23, 17, 17, 15}, {17, 17, 17, 31, 17, 17, 17}, {14, 4, 4, 4, 4, 4, 14},
-        {1, 1, 1, 1, 17, 17, 14},     {17, 18, 20, 24, 20, 18, 17}, {16, 16, 16, 16, 16, 16, 31},
-        {17, 27, 21, 21, 17, 17, 17}, {17, 25, 21, 19, 17, 17, 17}, {14, 17, 17, 17, 17, 17, 14},
-        {30, 17, 17, 30, 16, 16, 16}, {14, 17, 17, 17, 21, 18, 13}, {30, 17, 17, 30, 20, 18, 17},
-        {15, 16, 16, 14, 1, 1, 30},   {31, 4, 4, 4, 4, 4, 4},       {17, 17, 17, 17, 17, 17, 14},
-        {17, 17, 17, 17, 17, 10, 4},  {17, 17, 17, 21, 21, 21, 10}, {17, 17, 10, 4, 10, 17, 17},
-        {17, 17, 10, 4, 4, 4, 4},     {31, 1, 2, 4, 8, 16, 31},
-    };
-    static const uint8_t digits[][7] = {
-        {14, 17, 19, 21, 25, 17, 14}, {4, 12, 4, 4, 4, 4, 14},  {14, 17, 1, 2, 4, 8, 31},
-        {30, 1, 1, 14, 1, 1, 30},     {2, 6, 10, 18, 31, 2, 2}, {31, 16, 16, 30, 1, 1, 30},
-        {14, 16, 16, 30, 17, 17, 14}, {31, 1, 2, 4, 8, 8, 8},   {14, 17, 17, 14, 17, 17, 14},
-        {14, 17, 17, 15, 1, 1, 14},
-    };
-    if (c >= 'A' && c <= 'Z') {
-        return letters[c - 'A'];
-    }
-    if (c >= '0' && c <= '9') {
-        return digits[c - '0'];
-    }
-    return space;
-}
-
-static void text(uint16_t *pixels, int y0, int x, int y, const char *s, uint16_t color, int scale)
-{
-    for (; *s; ++s, x += 6 * scale) {
-        const uint8_t *rows = glyph(*s);
-        for (int gy = 0; gy < 7; ++gy) {
-            for (int gx = 0; gx < 5; ++gx) {
-                if (!(rows[gy] & (1 << (4 - gx)))) {
-                    continue;
-                }
-                for (int sy = 0; sy < scale; ++sy) {
-                    for (int sx = 0; sx < scale; ++sx) {
-                        const int px = x + gx * scale + sx;
-                        const int py = y + gy * scale + sy;
-                        if (px >= 0 && px < LCD_WIDTH && py >= y0 && py < y0 + STRIP_ROWS) {
-                            pixels[(py - y0) * LCD_WIDTH + px] = color;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 static void draw_menu(esp_lcd_panel_handle_t panel, uint16_t *strip, unsigned selected)
 {
     for (int y0 = 0; y0 < LCD_HEIGHT; y0 += STRIP_ROWS) {
-        for (int y = 0; y < STRIP_ROWS; ++y) {
-            for (int x = 0; x < LCD_WIDTH; ++x) {
-                strip[y * LCD_WIDTH + x] = ((x / 16 + (y + y0) / 16) & 1) ? 0x0841 : 0x0000;
-            }
-        }
-        text(strip, y0, 28, 9, "PIN LIBRARY", 0xffff, 2);
-        text(strip, y0, 30, 32, "SHORT PRESS SELECT", 0x8410, 1);
-        text(strip, y0, 30, 43, "HOLD BOOT TO START", 0x8410, 1);
-        text(strip, y0, 400, 32,
-             app_count < 8 ? "PAGE 1 OF 1" : (selected < 8 ? "PAGE 1 OF 2" : "PAGE 2 OF 2"), 0x8410,
-             1);
-        for (unsigned i = 0; i < app_count; ++i) {
-            const unsigned page_start = selected < 8 ? 0 : 8;
-            if (i < page_start || i >= page_start + 8) {
-                continue;
-            }
-            const int row = 54 + (int)(i - page_start) * 22;
-            const uint16_t ink = i == selected ? apps[i].color : 0x7bef;
-            if (i == selected) {
-                for (int yy = row - 3; yy < row + 20; ++yy) {
-                    if (yy >= y0 && yy < y0 + STRIP_ROWS) {
-                        for (int xx = 18; xx < 518; ++xx) {
-                            strip[(yy - y0) * LCD_WIDTH + xx] = 0x2104;
-                        }
-                    }
-                }
-            }
-            text(strip, y0, 34, row, apps[i].name, ink, 2);
-            text(strip, y0, 180, row + 5, apps[i].hint, 0xbdf7, 1);
-        }
-        if (app_count && (app_count < 8 || selected >= 8)) {
-            const unsigned page_start = selected < 8 ? 0 : 8;
-            const int row = 54 + (app_count - page_start) * 22;
-            const uint16_t ink = selected == app_count ? 0xffe0 : 0x7bef;
-            if (selected == app_count) {
-                for (int yy = row - 3; yy < row + 20; ++yy) {
-                    if (yy >= y0 && yy < y0 + STRIP_ROWS) {
-                        for (int xx = 18; xx < 518; ++xx) {
-                            strip[(yy - y0) * LCD_WIDTH + xx] = 0x2104;
-                        }
-                    }
-                }
-            }
-            text(strip, y0, 34, row, "DEMO", ink, 2);
-            text(strip, y0, 180, row + 5, "5 MINUTES EACH - INSTALLED APPS", 0xbdf7, 1);
-        }
-        if (!app_count) {
-            text(strip, y0, 34, 80, "NO APPS INSTALLED", 0xffff, 2);
-            text(strip, y0, 34, 110, "INSTALL APPS WITH THE WEB FLASHER", 0xbdf7, 1);
-        }
+        launcher_menu_render_strip(strip, y0, selected, apps, app_count);
         ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel, 0, y0, LCD_WIDTH, y0 + STRIP_ROWS, strip));
         ESP_ERROR_CHECK(
             xSemaphoreTake(display_done, pdMS_TO_TICKS(1000)) == pdTRUE ? ESP_OK : ESP_ERR_TIMEOUT);
